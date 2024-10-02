@@ -1,0 +1,10 @@
+﻿mov eax,ebx
+sub eax,ecx
+lea rcx,[rax+rax*0x4]
+mov rax,[rdi+0x28]
+movabs [0x{0:X2}+0x10],rax
+mov rax,[rdi+0x48]
+movabs [0x{0:X2}+0x8],rax
+mov rax,[rdi+0x38]
+movabs [0x{0:X2}+0x0],rax
+jmp 0x{1:X2}

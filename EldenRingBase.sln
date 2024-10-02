@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EldenRingBase", "EldenRingBase\EldenRingBase.csproj", "{90C2A47F-018A-4CEE-B3E7-E0B1808C42A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoulsFormats", "Dependencies\SoulsFormats\SoulsFormats.csproj", "{6B0E0E25-2B69-4AA0-8F0D-E3774C8A8335}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PropertyHook", "Dependencies\PropertyHook\PropertyHook.csproj", "{18EFF8D2-C4D5-4E18-9A31-38E106BA1CF7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{90C2A47F-018A-4CEE-B3E7-E0B1808C42A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90C2A47F-018A-4CEE-B3E7-E0B1808C42A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90C2A47F-018A-4CEE-B3E7-E0B1808C42A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90C2A47F-018A-4CEE-B3E7-E0B1808C42A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B0E0E25-2B69-4AA0-8F0D-E3774C8A8335}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B0E0E25-2B69-4AA0-8F0D-E3774C8A8335}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B0E0E25-2B69-4AA0-8F0D-E3774C8A8335}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B0E0E25-2B69-4AA0-8F0D-E3774C8A8335}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18EFF8D2-C4D5-4E18-9A31-38E106BA1CF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18EFF8D2-C4D5-4E18-9A31-38E106BA1CF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18EFF8D2-C4D5-4E18-9A31-38E106BA1CF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18EFF8D2-C4D5-4E18-9A31-38E106BA1CF7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dependencies\PropertyHook\PropertyHook.csproj" />
+      <ProjectReference Include="..\Dependencies\SoulsFormats\SoulsFormats.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="keystoneengine.csharp" Version="0.9.1.1" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+
+</Project>
