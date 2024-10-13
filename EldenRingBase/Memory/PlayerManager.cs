@@ -1,15 +1,18 @@
-﻿using PropertyHook;
-using EldenRingBase.GameHook;
+﻿using EldenRingBase.GameHook;
+using PropertyHook;
 
 namespace EldenRingBase.Memory;
 
 
+/// <summary>
+/// TODO: Still to come:
+///     - Check what equipment and spells player currently has equipped/attuned (for Follower outfitting).
+///     - When player HP hits zero, scan nearby enemies and look for one doing an attack animation. 'Player Vendetta'
+///     classes roll for attaching to that enemy (choose randomly from multiple enemy and/or vendetta candidates).
+/// </summary>
 public class PlayerManager
 {
     EldenRingHook Hook { get; }
-
-    // TODO: Hard-coded offset. May change in future Elden Ring updates?
-    const int LocalPlayerOffset = 0x10EF8;
 
     const string GetRunesFuncAOB = "44 8B 49 6C 45 33 DB";
     PHPointer GetRunesFunc { get; }
@@ -45,17 +48,17 @@ public class PlayerManager
         
         GetRunesFunc = Hook.RegisterAbsoluteAOB(GetRunesFuncAOB);
         
-        Hook.OnHooked += OnHooked;
-        Hook.OnUnhooked += OnUnhooked;
+        Hook.OnGameLoaded += OnLoaded;
+        Hook.OnGameUnloaded += OnUnloaded;
     }
 
-    void OnHooked(object? sender, EventArgs e)
+    void OnLoaded(object? sender, EventArgs e)
     {
-        PlayerIns = new EnemyIns(Hook.WorldChrMan.CreateChildPointer(LocalPlayerOffset, 0 * 10));
+        PlayerIns = new EnemyIns(Hook.WorldChrMan.CreateChildPointer(EldenRingHook.PlayerInsOffset, 0 * 10));
         PlayerAsm = new ChrAsm(Hook.GameDataMan.CreateChildPointer(0x8));
     }
     
-    void OnUnhooked(object? sender, EventArgs e)
+    void OnUnloaded(object? sender, EventArgs e)
     {
         PlayerIns = null;
         PlayerAsm = null;
@@ -67,17 +70,22 @@ public class PlayerManager
     /// `amount` can be negative to take runes away. Both addition and subtraction are properly displayed in the HUD.
     /// </summary>
     /// <param name="amount"></param>
-    public void GetRunes(int amount)
+    public bool GetRunes(int amount)
     {
+        if (!Hook.Loaded)
+        {
+            Logging.WarningPrint("Cannot Get Runes when game is not loaded.");
+            return false;
+        }
         if (!Hook.WorldChrMan.TryResolve(out IntPtr worldChrManAddr))
         {
-            Logging.DebugPrint("Failed to resolve WorldChrMan.");
-            return;
+            Logging.ErrorPrint("Failed to resolve WorldChrMan.");
+            return false;
         }
         if (!GetRunesFunc.TryResolve(out IntPtr getRunesFuncAddr))
         {
-            Logging.DebugPrint("Failed to resolve GetRunes function.");
-            return;
+            Logging.ErrorPrint("Failed to resolve GetRunes function.");
+            return false;
         }
         
         IntPtr runeAmountAddr = Hook.AllocateClose(sizeof(int));
@@ -94,9 +102,16 @@ public class PlayerManager
                 getRunesFuncAddr.ToString("X2"));
             Hook.AssembleAndExecute(asm);
         }
+        catch (Exception e)
+        {
+            Logging.ErrorPrint($"Failed to execute Get Runes script: {e}");
+            return false;
+        }
         finally
         {
             Hook.Free(runeAmountAddr);
         }
+
+        return true;
     }
 }

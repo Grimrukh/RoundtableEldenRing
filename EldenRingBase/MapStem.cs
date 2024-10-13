@@ -14,9 +14,7 @@ public enum MapAreaType : byte
 {
     LegacyDungeonBase = 10,  // many matching areas (10-19)
     LegacyDungeonDLC = 20,  // many matching areas (20-29)
-    
-    // TODO: Add DLC dungeon categories.
-    
+
     Catacombs = 30,
     Cave = 31,
     Tunnel = 32,
@@ -84,18 +82,21 @@ public class MapStem
             throw new Exception($"Map {_stem} is not an overworld map tile.");
         }
     }
+    
+    public bool IsDLC => 
+        AreaType is MapAreaType.OverworldDLC 
+            or MapAreaType.LegacyDungeonDLC
+            or >= MapAreaType.CatacombsDLC and <= MapAreaType.CaveDLC;
 
-    public bool IsBaseOverworld => AreaType == MapAreaType.Overworld;
-    public bool IsDLCOverworld => AreaType == MapAreaType.OverworldDLC;
-    public bool IsAnyOverworld => AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC;
+    public bool IsOverworldBase => AreaType == MapAreaType.Overworld;
+    public bool IsOverworldDLC => AreaType == MapAreaType.OverworldDLC;
+    public bool IsOverworldAny => AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC;
 
-    public bool IsBaseGenericDungeon => 
+    public bool IsGenericDungeonBase => 
         AreaType is MapAreaType.Catacombs or MapAreaType.Cave or MapAreaType.Tunnel
         or MapAreaType.DivineTower || _stem == "m18_00_00_00";  // includes Fringefolk Hero's Grave (Stranded Graveyard)
-
-    public bool IsDLCGenericDungeon => 
-        AreaType is MapAreaType.CatacombsDLC or MapAreaType.GaolDLC 
-            or MapAreaType.RuinedForgeDLC or MapAreaType.CaveDLC;
+    public bool IsGenericDungeonDLC => AreaType is >= MapAreaType.CatacombsDLC and <= MapAreaType.CaveDLC;
+    public bool IsGenericDungeonAny => IsGenericDungeonBase || IsGenericDungeonDLC;
 
     /// <summary>
     /// Hero's Graves are different from other Catacombs (e.g., no lever). Note that the DLC has none.
@@ -123,7 +124,7 @@ public class MapStem
     /// NOTE: EMEVD is NOT compulsory for any overworld map. Most small tiles have EMEVD, and some large tiles do
     /// (e.g. caravans). I don't think any vanilla medium tiles have EMEVD.
     /// </summary>
-    public bool ShouldHaveEMEVD => !IsAnyOverworld && !MapsWithoutEMEVD.Contains(_stem);
+    public bool ShouldHaveEMEVD => !IsOverworldAny && !MapsWithoutEMEVD.Contains(_stem);
     
     /// <summary>
     /// Offset of first event flag in this map, e.g. 1000_0000 or 60_4030_0000, from `[[EventFlagMan]+0x28]`.
