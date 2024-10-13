@@ -12,17 +12,28 @@ public enum TileSize : byte
 
 public enum MapAreaType : byte
 {
-    LegacyDungeon = 0,  // many matching areas (10-19)
+    LegacyDungeonBase = 10,  // many matching areas (10-19)
+    LegacyDungeonDLC = 20,  // many matching areas (20-29)
+    
     // TODO: Add DLC dungeon categories.
+    
     Catacombs = 30,
     Cave = 31,
     Tunnel = 32,
     DivineTower = 34,
     ShunningGrounds = 35,  // unique area, likely because it connects Leyndell to Deeproot Depths
     RuinStrewnPrecipice = 39,  // unique area, obviously important
+    
+    CatacombsDLC = 40,
+    GaolDLC = 41,
+    RuinedForgeDLC = 42,
+    CaveDLC = 43,
+    
     Colosseum = 45,
+    
     Overworld = 60,
     OverworldDLC = 61,
+    
     Unknown = 255,
 }
 
@@ -74,20 +85,36 @@ public class MapStem
         }
     }
 
-    public bool IsAnyOverworld => AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC;
     public bool IsBaseOverworld => AreaType == MapAreaType.Overworld;
     public bool IsDLCOverworld => AreaType == MapAreaType.OverworldDLC;
+    public bool IsAnyOverworld => AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC;
 
-    public bool IsGenericDungeon => 
+    public bool IsBaseGenericDungeon => 
         AreaType is MapAreaType.Catacombs or MapAreaType.Cave or MapAreaType.Tunnel
-        or MapAreaType.DivineTower || _stem == "m18_00_00_00";  // includes Stranded Graveyard
+        or MapAreaType.DivineTower || _stem == "m18_00_00_00";  // includes Fringefolk Hero's Grave (Stranded Graveyard)
 
-    // Hero's Graves are different from other Catacombs (e.g., no lever).
+    public bool IsDLCGenericDungeon => 
+        AreaType is MapAreaType.CatacombsDLC or MapAreaType.GaolDLC 
+            or MapAreaType.RuinedForgeDLC or MapAreaType.CaveDLC;
+
+    /// <summary>
+    /// Hero's Graves are different from other Catacombs (e.g., no lever). Note that the DLC has none.
+    /// </summary>
     public bool IsHerosGrave => HerosGraveCatacombs.Contains(_stem);
+
+    /// <summary>
+    /// Underground River areas all have AA == 12. (None in the DLC.)
+    /// </summary>
     public bool IsUnderground => Bytes[0] == 12;
-    public bool IsMajorLegacyDungeon => MajorLegacyDungeons.Contains(_stem);
     
+    /// <summary>
+    /// Auto-detected path to map directory relative to 'Game' root directory.
+    /// </summary>
     public string MapDirPath => $"map/{_stem[1..3]}/{_stem}";
+    
+    /// <summary>
+    /// Auto-detected path to MSB file relative to 'Game' root directory.
+    /// </summary>
     public string MSBPath => $"map/mapstudio/{_stem}.msb.dcx";
     
     /// <summary>
@@ -103,20 +130,9 @@ public class MapStem
     /// </summary>
     public int BaseEventFlagOffset => AreaType switch
     {
-        // TODO: DLC overworld.
         MapAreaType.Overworld => GetOverworldMapBaseFlag(TileX, TileZ),
         _ => GetDungeonMapBaseFlag(_stem),
     };
-
-    static readonly HashSet<string> MajorLegacyDungeons =
-    [
-        "m10_00_00_00",  // Stormveil Castle
-        "m14_00_00_00",  // Academy of Raya Lucaria
-        "m11_00_00_00",  // Leyndell, Royal Capital
-        "m11_05_00_00",  // Leyndell, Ashen Capital
-        "m15_00_00_00",  // Miquella's Haligtree
-        "m16_00_00_00",  // Volcano Manor
-    ];
 
     static readonly HashSet<string> HerosGraveCatacombs =
     [
@@ -157,6 +173,8 @@ public class MapStem
 
         AreaType = Bytes[0] switch
         {
+            >= 10 and <= 19 => MapAreaType.LegacyDungeonBase,
+            >= 20 and <= 29 => MapAreaType.LegacyDungeonDLC,
             (byte)MapAreaType.Catacombs => MapAreaType.Catacombs,
             (byte)MapAreaType.Cave => MapAreaType.Cave,
             (byte)MapAreaType.Tunnel => MapAreaType.Tunnel,
@@ -165,8 +183,7 @@ public class MapStem
             (byte)MapAreaType.RuinStrewnPrecipice => MapAreaType.RuinStrewnPrecipice,
             (byte)MapAreaType.Colosseum => MapAreaType.Colosseum,
             (byte)MapAreaType.Overworld => MapAreaType.Overworld,
-            (byte)MapAreaType.Unknown => MapAreaType.Unknown,  // 255 (-1)
-            _ => MapAreaType.LegacyDungeon,  // area ID varies (10 to 19)
+            _ => MapAreaType.Unknown, // 255 (-1)
         };
     }
 
@@ -476,6 +493,25 @@ public class MapStem
         return !(left == right);
     }
 
+    /// <summary>
+    /// Wrapper for `Bytes[index]` to get that map stem component.
+    /// </summary>
+    /// <param name="index"></param>
+    /// <exception cref="IndexOutOfRangeException"></exception>
+    public int this[int index]
+    {
+        get
+        {
+            if (index is < 0 or >= 4)
+                throw new IndexOutOfRangeException($"Map stem index must be 0-3, not {index}.");
+            return Bytes[index];
+        }
+    }
+
+    /// <summary>
+    /// Direct string indexing into the map stem.
+    /// </summary>
+    /// <param name="range"></param>
     public string this[Range range] => _stem[range];
     #endregion
 }
