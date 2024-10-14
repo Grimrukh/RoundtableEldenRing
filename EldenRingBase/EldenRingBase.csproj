@@ -8,7 +8,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Dependencies\PropertyHook\PropertyHook.csproj" />
+      <ProjectReference Include="..\Dependencies\PropertyHook\PropertyHook\PropertyHook.csproj" />
       <ProjectReference Include="..\Dependencies\SoulsFormats\SoulsFormats.csproj" />
+      <ProjectReference Include="..\Dependencies\SoulsFormats\SoulsFormats\SoulsFormats.csproj" />
     </ItemGroup>
 
     <ItemGroup>
