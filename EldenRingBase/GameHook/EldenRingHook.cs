@@ -5,9 +5,11 @@ namespace EldenRingBase.GameHook;
 
 public class EldenRingHook : PHook
 {
+    const string WINDOW_TITLE = "ELDEN RING™";
+    
     public long BaseAddress { get; private set; }
     
-    // Hard-coded offset. TODO: Could be game version dependent.
+    // Hard-coded offset. TODO: Could be game version dependent. Apparently used to be 0x18468.
     public const int PlayerInsOffset = 0x10EF8;
     
     // High-level pointers.
@@ -16,20 +18,13 @@ public class EldenRingHook : PHook
     public PHPointer MapItemMan { get; }
     public PHPointer SoloParamRepository { get; }
     public PHPointer FieldArea { get; }
-    public PHPointer EventFlagMan { get; }
     
     /// <summary>
     /// Used to check if game is loaded.
     /// </summary>
     public PHPointer PlayerIns { get; }
     
-    const string windowName = "ELDEN RING™";
-    const int RelativePtrAddressOffset = 0x3;
-    const int RelativePtrInstructionSize = 0x7;
-    // const int LargeRelativePtrInstructionSize = 0x8;
-    
     static readonly Engine Engine = new(Architecture.X86, Mode.X64);
-
 
     /// <summary>
     /// Some functions, like reading/writing event flags, require some padding time after the game loads.
@@ -38,24 +33,22 @@ public class EldenRingHook : PHook
 
     public bool Loaded => LoadedTimeMs >= 0;  // i.e. not -1
     
-    public bool FlagsAvailable => EventFlagMan.IsNonZero && EventFlagMan.ReadIntPtr(0x28) != IntPtr.Zero;
 
     public EldenRingHook(int refreshInterval, int minLifetime) :
-        base(refreshInterval, minLifetime, p => p.MainWindowTitle == windowName)
+        base(refreshInterval, minLifetime, p => p.MainWindowTitle == WINDOW_TITLE)
     {
         OnHooked += ERHook_OnHooked;
         OnUnhooked += ERHook_OnUnhooked;
 
-        WorldChrMan = RegisterRelativeAOB(Offsets.WorldChrManAoB, RelativePtrAddressOffset, RelativePtrInstructionSize, 0x0);
-        GameDataMan = RegisterRelativeAOB(Offsets.GameDataManAoB, RelativePtrAddressOffset, RelativePtrInstructionSize, 0x0);
-        MapItemMan = RegisterRelativeAOB(Offsets.MapItemManAoB, RelativePtrAddressOffset, RelativePtrInstructionSize, 0x0);
-        SoloParamRepository = RegisterRelativeAOB(Offsets.SoloParamRepositoryAoB, RelativePtrAddressOffset, RelativePtrInstructionSize, 0x0);
-        FieldArea = RegisterRelativeAOB(Offsets.FieldAreaAoB, RelativePtrAddressOffset, RelativePtrInstructionSize, 0x0);
+        WorldChrMan = RegisterRelativeAOB_3_7(Offsets.WorldChrManAoB, 0x0);
+        GameDataMan = RegisterRelativeAOB_3_7(Offsets.GameDataManAoB, 0x0);
+        MapItemMan = RegisterRelativeAOB_3_7(Offsets.MapItemManAoB, 0x0);
+        SoloParamRepository = RegisterRelativeAOB_3_7(Offsets.SoloParamRepositoryAoB, 0x0);
+        FieldArea = RegisterRelativeAOB_3_7(Offsets.FieldAreaAoB, 0x0);
 
         // Note that this is missing the extra offset 0 to get the actual PlayerIns class.
         PlayerIns = WorldChrMan.CreateChildPointer(PlayerInsOffset);
         
-        EventFlagMan = RegisterRelativeAOB(Offsets.EventFlagManAoB, RelativePtrAddressOffset, RelativePtrInstructionSize, 0x0);
     }
 
     void ERHook_OnHooked(object? sender, PHEventArgs e)

@@ -174,8 +174,6 @@ public static class Offsets
         CurrentAnimation = 0x90,
     }
 
-    public const int PlayerInsOffset = 0x18468;
-
     public enum PlayerIns
     {
         TargetHandle = 0x6A0,

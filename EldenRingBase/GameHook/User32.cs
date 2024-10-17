@@ -1,20 +1,19 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace EldenRingBase.GameHook
+namespace EldenRingBase.GameHook;
+
+internal static class User32
 {
-    internal static class User32
+    [DllImport("user32.dll")]
+    static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
+
+    [DllImport("user32.dll")]
+    static extern IntPtr GetForegroundWindow();
+
+    public static uint GetForegroundProcessID()
     {
-        [DllImport("user32.dll")]
-        static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-
-        public static uint GetForegroundProcessID()
-        {
-            IntPtr hWnd = GetForegroundWindow();
-            GetWindowThreadProcessId(hWnd, out uint pid);
-            return pid;
-        }
+        IntPtr hWnd = GetForegroundWindow();
+        GetWindowThreadProcessId(hWnd, out uint pid);
+        return pid;
     }
 }

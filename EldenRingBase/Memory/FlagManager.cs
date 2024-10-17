@@ -1,21 +1,31 @@
 ﻿using PropertyHook;
 using EldenRingBase.GameHook;
 
-namespace EldenRingBase.Events;
+namespace EldenRingBase.Memory;
 
-public class FlagManager(EldenRingHook hook)
+public class FlagManager
 {
-    EldenRingHook Hook { get; } = hook;
+    EldenRingHook Hook { get; }
+    
+    PHPointer EventFlagMan { get; }
+
+    public bool FlagsAvailable => EventFlagMan.IsNonZero && EventFlagMan.ReadIntPtr(0x28) != IntPtr.Zero;
+
+    public FlagManager(EldenRingHook hook)
+    {
+        Hook = hook;
+        EventFlagMan = Hook.RegisterRelativeAOB_3_7(Offsets.EventFlagManAoB, 0x0);
+    }
 
     public bool IsEventFlag(uint flag)
     {
-        if (!Hook.FlagsAvailable)
+        if (!FlagsAvailable)
         {
             Logging.ErrorPrint("Event Flag pointer is not valid; cannot check event flag.");
             return false;
         }
 
-        IntPtr flagBlocksOffset = Hook.EventFlagMan.ReadIntPtr(0x28);
+        IntPtr flagBlocksOffset = EventFlagMan.ReadIntPtr(0x28);
         (int address, byte mask)? addressMask = GetFlagAddressMask((int)flag, "check");
         if (addressMask == null)
             return false;
@@ -37,13 +47,13 @@ public class FlagManager(EldenRingHook hook)
     
     public void SetEventFlag(uint flag, bool state)
     {
-        if (!Hook.FlagsAvailable)
+        if (!FlagsAvailable)
         {
             Logging.ErrorPrint("Event Flag pointer is not valid; cannot set event flag.");
             return;
         }
 
-        IntPtr flagBlocksOffset = Hook.EventFlagMan.ReadIntPtr(0x28);
+        IntPtr flagBlocksOffset = EventFlagMan.ReadIntPtr(0x28);
         (int address, byte mask)? addressMask = GetFlagAddressMask((int)flag, "set");
         if (addressMask == null)
             return;
