@@ -10,7 +10,7 @@ namespace EldenRingBase.Params;
 public class ParamManager : GameMonitor
 {
     EldenRingHook Hook { get; }
-    Dictionary<string, PARAMDEF> Paramdefs { get; }
+    Dictionary<string, PARAMDEF> ParamdefsByType { get; }
     
     public string RegulationPath { get; }
     public BND4 Regulation { get; }
@@ -169,7 +169,7 @@ public class ParamManager : GameMonitor
         Hook = hook;
         Hook.OnHooked += OnHooked;
         Hook.OnUnhooked += OnUnhooked;
-        Paramdefs = paramdefs.ToDictionary(p => p.ParamType, p => p);
+        ParamdefsByType = paramdefs.ToDictionary(p => p.ParamType, p => p);
     }
 
     void OnHooked(object? sender, PHEventArgs e)
@@ -177,7 +177,7 @@ public class ParamManager : GameMonitor
         foreach ((ParamType type, int firstParamOffset) in ParamOffsets)
         {
             PHPointer paramPointer = Hook.SoloParamRepository.CreateChildPointer(firstParamOffset, 0x80, 0x80);
-            ParamsInMemory[type] = new ParamInMemory(paramPointer, Paramdefs[ParamdefNames[type]]);
+            ParamsInMemory[type] = new ParamInMemory(paramPointer, ParamdefsByType[ParamdefNames[type]]);
         }
     }
     

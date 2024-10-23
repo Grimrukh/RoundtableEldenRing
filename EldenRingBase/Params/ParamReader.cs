@@ -11,16 +11,19 @@ namespace EldenRingBase.Params;
 public class ParamReader
 {
     BND4 GameParam { get; }
+    Dictionary<string, PARAMDEF> Paramdefs { get; }  // loaded ONCE on creation; keys are XML file stems
 
     public ParamReader(string gameDirectory)
     {
         string regulationPath = Path.Combine(gameDirectory, "regulation.bin");
         GameParam = SFUtil.DecryptERRegulation(regulationPath);
+        Paramdefs = GetParamdefs();
     }
     
     public ParamReader(BND4 gameParam)
     {
         GameParam = gameParam;
+        Paramdefs = GetParamdefs();
     }
 
     /// <summary>
@@ -38,12 +41,18 @@ public class ParamReader
     public PARAM ReadParamType(string paramName)
     {
         string paramdefName = paramName.Split("_")[0];
-        PARAMDEF paramdef = PARAMDEF.XmlDeserialize($"Resources/Defs/{paramdefName}.xml");
+        foreach (string key in Paramdefs.Keys)
+            Console.WriteLine(key);
+            
+        PARAMDEF? paramdef = Paramdefs[paramdefName];
+        if (paramdef == null)
+            throw new Exception($"No PARAMDEF '{paramdefName}' found for PARAM '{paramName}'.");
         
-        BinderFile? paramFile = GameParam.Files.Find(
-            x => x.Name == $@"N:\GR\data\Param\param\GameParam\{paramName}.param");
+        (string dlcPath, string basePath) = GetParamBNDPaths(paramName);
+        BinderFile? paramFile = GameParam.Files.Find(x => x.Name == dlcPath || x.Name == basePath);
         if (paramFile == null)
-            throw new Exception($"File '{paramName}' not found in regulation.");
+            throw new Exception($"File '{paramName}.param' not found in regulation.");
+        
         PARAM param = PARAM.Read(paramFile.Bytes);
         bool success = param.ApplyParamdefCarefully(paramdef);
         if (!success)
@@ -59,7 +68,9 @@ public class ParamReader
         {
             string paramName = paramType.ToString();  // enum names are valid
             string paramdefName = paramName.Split("_")[0];
-            PARAMDEF paramdef = PARAMDEF.XmlDeserialize($"Resources/Defs/{paramdefName}.xml");
+            PARAMDEF? paramdef = Paramdefs[paramdefName];
+            if (paramdef == null)
+                throw new Exception($"No PARAMDEF '{paramdefName}' found for PARAM '{paramName}'.");
         
             BinderFile? paramFile = GameParam.Files.Find(
                 x => x.Name == $@"N:\GR\data\Param\param\GameParam\{paramName}.param");
@@ -76,17 +87,18 @@ public class ParamReader
     }
 
     /// <summary>
-    /// Get all XML Paramdefs, ignoring any errors (they only happen in useless ones).
+    /// Get all XML Paramdefs by their XML stem, ignoring any errors (they only happen in useless ones).
     /// </summary>
     /// <returns></returns>
-    public static List<PARAMDEF> GetParamdefs()
+    public static Dictionary<string, PARAMDEF> GetParamdefs()
     {
-        List<PARAMDEF> paramdefs = [];
+        Dictionary<string, PARAMDEF> paramdefs = new();
         foreach (string xmlFile in Directory.GetFiles("Resources/Defs", "*.xml"))
         {
+            string fileStem = Path.GetFileNameWithoutExtension(xmlFile);
             try
             {
-                paramdefs.Add(PARAMDEF.XmlDeserialize(xmlFile));
+                paramdefs[fileStem] = PARAMDEF.XmlDeserialize(xmlFile);
             }
             catch
             {
@@ -211,5 +223,18 @@ public class ParamReader
             PARAMDEF.DefType.fixstrW => "string",
             _ => "object",
         };
+    }
+
+    /// <summary>
+    /// Two possible `param` file paths: '.../GameParam/merged/DLC02' or just '.../GameParam'.
+    /// If both somehow exist (not a vanilla file), DLC will be preferred.
+    /// </summary>
+    /// <param name="paramName"></param>
+    /// <returns></returns>
+    static (string dlcPath, string basePath) GetParamBNDPaths(string paramName)
+    {
+        string dlcPath = $@"N:\GR\data\Param\param\GameParam\merged\DLC02\{paramName}.param";
+        string basePath = $@"N:\GR\data\Param\param\GameParam\{paramName}.param";
+        return (dlcPath, basePath);
     }
 }

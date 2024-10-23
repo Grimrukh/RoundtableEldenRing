@@ -175,7 +175,7 @@
       <DisplayName>特殊効果カテゴリ</DisplayName>
       <Enum>BEHAVIOR_CATEGORY</Enum>
       <Description>スキルや、魔法、アイテムなどで、パラメータが変動する効果（エンチャントウェポンなど）があるので、│定した効果が、「武器攻撃のみをパワーアップする」といった効果に対応できるように行動ごとに設定するバリスタなど、設定の必要のないものは「なし」を設定する
-</Description>
+      </Description>
       <SortID>900</SortID>
     </Field>
     <Field Def="u8 refType">
