@@ -4,31 +4,39 @@ namespace EldenRingBase.Params;
 
 /// <summary>
 /// Utility class for quickly loading and reading PARAMs, mostly for mod creation purposes.
+///
+/// Can be constructed from a game directory path (from which `regulation.bin` is read) or from an existing `BND4`
+/// regulation (e.g. `ParamManager.Regulation`) to use.
 /// </summary>
-public static class ParamReader
+public class ParamReader
 {
-    const string gameRegulationPath = @"C:\Steam\steamapps\common\ELDEN RING\Game\regulation.bin";
+    BND4 GameParam { get; }
 
-    static BND4? GameParam;
+    public ParamReader(string gameDirectory)
+    {
+        string regulationPath = Path.Combine(gameDirectory, "regulation.bin");
+        GameParam = SFUtil.DecryptERRegulation(regulationPath);
+    }
+    
+    public ParamReader(BND4 gameParam)
+    {
+        GameParam = gameParam;
+    }
 
     /// <summary>
     /// Read and return given `paramType`, with its `PARAMDEF` applied.
     /// </summary>
     /// <param name="paramType"></param>
-    /// <param name="reloadGameParam"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static PARAM ReadParamType(ParamType paramType, bool reloadGameParam = true)
+    public PARAM ReadParamType(ParamType paramType)
     {
         string paramName = paramType.ToString();
-        return ReadParamType(paramName, reloadGameParam);
+        return ReadParamType(paramName);
     }
 
-    public static PARAM ReadParamType(string paramName, bool reloadGameParam = true)
+    public PARAM ReadParamType(string paramName)
     {
-        if (reloadGameParam || GameParam == null)
-            GameParam = SFUtil.DecryptERRegulation(gameRegulationPath);
-
         string paramdefName = paramName.Split("_")[0];
         PARAMDEF paramdef = PARAMDEF.XmlDeserialize($"Resources/Defs/{paramdefName}.xml");
         
@@ -43,12 +51,8 @@ public static class ParamReader
         return param;
     }
     
-    public static Dictionary<ParamType, (BinderFile paramFile, PARAM param)> ReadParamTypes(
-    string gameDirectory, out BND4 gameParam, params ParamType[] paramTypes)
+    public Dictionary<ParamType, (BinderFile paramFile, PARAM param)> ReadParamTypes(params ParamType[] paramTypes)
     {
-        string regulationPath = Path.Combine(gameDirectory, "regulation.bin");
-        gameParam = SFUtil.DecryptERRegulation(regulationPath);
-        
         Dictionary<ParamType, (BinderFile paramFile, PARAM param)> loadedParams = new();
         
         foreach (ParamType paramType in paramTypes)
@@ -57,7 +61,7 @@ public static class ParamReader
             string paramdefName = paramName.Split("_")[0];
             PARAMDEF paramdef = PARAMDEF.XmlDeserialize($"Resources/Defs/{paramdefName}.xml");
         
-            BinderFile? paramFile = gameParam.Files.Find(
+            BinderFile? paramFile = GameParam.Files.Find(
                 x => x.Name == $@"N:\GR\data\Param\param\GameParam\{paramName}.param");
             if (paramFile == null)
                 throw new Exception($"File '{paramName}' not found in regulation.");

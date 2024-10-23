@@ -12,8 +12,8 @@ public class ParamManager : GameMonitor
     EldenRingHook Hook { get; }
     Dictionary<string, PARAMDEF> Paramdefs { get; }
     
-    string RegulationPath { get; }
-    BND4 Regulation { get; }
+    public string RegulationPath { get; }
+    public BND4 Regulation { get; }
 
     public HashSet<ParamType> RequestedParamWrites { get; } = [];
 
