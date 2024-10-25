@@ -13,9 +13,209 @@ public class ParamReader
     BND4 GameParam { get; }
     Dictionary<string, PARAMDEF> Paramdefs { get; }  // loaded ONCE on creation; keys are XML file stems
 
-    public ParamReader(string gameDirectory)
+    /// <summary>
+    /// Stems of all XML PARAMDEF resources.
+    /// </summary>
+    static readonly List<string> ParamdefNames =
+    [
+        "ActionButtonParam",
+        "AiAnimTblParam",
+        "AIAttackParam",
+        "AiOddsParam",
+        "AiSoundParam",
+        "AiStandardInfo",
+        "AssetEnvironmentGeometryParam",
+        "AssetMaterialSfxParam",
+        "AssetModelSfxParam",
+        "AtkParam",
+        "AttackElementCorrectParam",
+        "AutoCreateEnvSoundParam",
+        "BaseChrSelectMenuParam",
+        "BehaviorParam",
+        "BonfireWarpParam",
+        "BonfireWarpSubCategoryParam",
+        "BonfireWarpTabParam",
+        "BuddyParam",
+        "BuddyStoneParam",
+        "BudgetParam",
+        "Bullet",
+        "BulletCreateLimitParam",
+        "CalcCorrectGraph",
+        "CameraFadeParam",
+        "Ceremony",
+        "CharaInitParam",
+        "CharMakeMenuListItemParam",
+        "CharMakeMenuTopParam",
+        "ChrActivateConditionParam",
+        "ChrEquipModelParam",
+        "ChrModelParam",
+        "ClearCountCorrectParam",
+        "CommonSystemParam",
+        "CoolTimeParam",
+        "CutsceneGparamTimeParam",
+        "CutsceneGparamWeatherParam",
+        "CutsceneMapIdParam",
+        "CutSceneTextureLoadParam",
+        "CutsceneTimezoneConvertParam",
+        "CutsceneWeatherOverrideGparamConvertParam",
+        "DecalParam",
+        "DefaultKeyAssign",
+        "DirectionCameraParam",
+        "EnemyCommonParam",
+        "EnemyStandardInfo",
+        "EnvObjLotParam",
+        "EquipMtrlSetParam",
+        "EquipParamAccessory",
+        "EquipParamCustomWeapon",
+        "EquipParamGem",
+        "EquipParamGoods",
+        "EquipParamProtector",
+        "EquipParamWeapon",
+        "EventFlagUsageParam",
+        "FaceParam",
+        "FaceRangeParam",
+        "FeTextEffectParam",
+        "FinalDamageRateParam",
+        "FootSfxParam",
+        "GameAreaParam",
+        "GameInfoParam",
+        "GameSystemCommonParam",
+        "Gconfig_AAQuality",
+        "Gconfig_DecalQuality",
+        "Gconfig_DOFQuality",
+        "Gconfig_EffectQuality",
+        "Gconfig_LightingQuality",
+        "Gconfig_MotionBlurQuality",
+        "Gconfig_RaytracingQuality",
+        "Gconfig_ReflectionQuality",
+        "Gconfig_ShaderQuality",
+        "Gconfig_ShadowQuality",
+        "Gconfig_SSAOQuality",
+        "Gconfig_TextureFilterQuality",
+        "Gconfig_VolumetricEffectQuality",
+        "Gconfig_WaterQuality",
+        "GestureParam",
+        "GparamGridRegionInfo",
+        "GparamRefSettings",
+        "GraphicsCommonParam",
+        "GraphicsConfig",
+        "GrassLodRangeParam",
+        "GrassMapSettings",
+        "GrassTypeParam",
+        "HitEffectSeParam",
+        "HitEffectSfxConceptParam",
+        "HitEffectSfxParam",
+        "HitMtrlParam",
+        "HPEstusFlaskRecoveryParam",
+        "ItemLotParam",
+        "KeyAssignMenuItemParam",
+        "KeyAssignParam",
+        "KnockBackParam",
+        "KnowledgeLoadScreenItemParam",
+        "LegacyDistantViewPartsReplaceParam",
+        "LoadBalancerDrawDistScaleParam",
+        "LoadBalancerNewDrawDistScaleParam",
+        "LoadBalancerParam",
+        "LockCamParam",
+        "Magic",
+        "MapDefaultInfoParam",
+        "MapGdRegionDrawParam",
+        "MapGdRegionInfoParam",
+        "MapGridCreateHeightDetailLimitInfo",
+        "MapGridCreateHeightLimitInfoParam",
+        "MapMimicryEstablishmentParam",
+        "MapNameTexParam",
+        "MapNameTexParam_m61",
+        "MapPieceTexParam",
+        "MapPieceTexParam_m61",
+        "MaterialExParam",
+        "MenuColorTableParam",
+        "MenuCommonParam",
+        "MenuOffscrRendParam",
+        "MenuPropertyLayoutParam",
+        "MenuPropertySpecParam",
+        "MenuValueTableParam",
+        "MimicryEstablishmentTexParam",
+        "MimicryEstablishmentTexParam_m61",
+        "MissileParam",
+        "ModelSfxParam",
+        "MoveParam",
+        "MultiHPEstusFlaskBonusParam",
+        "MultiPlayCorrectionParam",
+        "MultiSoulBonusRateParam",
+        "NetworkAreaParam",
+        "NetworkMsgParam",
+        "NetworkParam",
+        "NpcAiActionParam",
+        "NpcAiBehaviorProbabilityParam",
+        "NpcParam",
+        "NpcThinkParam",
+        "ObjActParam",
+        "ObjectMaterialSfxParam",
+        "ObjectParam",
+        "PartsDrawParam",
+        "PerformanceCheckParam",
+        "PhantomParam",
+        "PlayerCommonParam",
+        "PlayRegionParam",
+        "PostureControlParam_Gender",
+        "PostureControlParam_Pro",
+        "PostureControlParam_WepLeft",
+        "PostureControlParam_WepRight",
+        "RandomAppearEditParam",
+        "RandomAppearParam",
+        "ReinforceParamProtector",
+        "ReinforceParamWeapon",
+        "ResistCorrectParam",
+        "ReverbAuxSendBusParam",
+        "RideParam",
+        "RoleParam",
+        "RollingObjLotParam",
+        "RuntimeBoneControlParam",
+        "SeActivationRangeParam",
+        "SeMaterialConvertParam",
+        "SfxBlockResShareParam",
+        "ShopLineupParam",
+        "SignPuddleParam",
+        "SignPuddleSubCategoryParam",
+        "SignPuddleTabParam",
+        "SoundAssetSoundObjEnableDistParam",
+        "SoundAutoEnvSoundGroupParam",
+        "SoundAutoReverbEvaluationDistParam",
+        "SoundAutoReverbSelectParam",
+        "SoundChrPhysicsSeParam",
+        "SoundCommonIngameParam",
+        "SoundCommonSystemParam",
+        "SoundCutsceneParam",
+        "SpeedtreeParam",
+        "SpEffectParam",
+        "SpEffectSetParam",
+        "SpEffectVfx",
+        "SwordArtsParam",
+        "TalkParam",
+        "ThrowDirectionSfxParam",
+        "ThrowParam",
+        "ToughnessParam",
+        "TutorialParam",
+        "WaypointParam",
+        "WeatherAssetCreateParam",
+        "WeatherAssetReplaceParam",
+        "WeatherLotParam",
+        "WeatherLotTexParam",
+        "WeatherLotTexParam_m61",
+        "WeatherParam",
+        "WepAbsorpPosParam",
+        "WetAspectParam",
+        "WhiteSignCoolTimeParam",
+        "WorldMapLegacyConvParam",
+        "WorldMapPieceParam",
+        "WorldMapPlaceNameParam",
+        "WorldMapPointParam",
+        "WwiseValueToStrConvertParamFormat",
+    ];
+
+    public ParamReader(string regulationPath)
     {
-        string regulationPath = Path.Combine(gameDirectory, "regulation.bin");
         GameParam = SFUtil.DecryptERRegulation(regulationPath);
         Paramdefs = GetParamdefs();
     }
@@ -41,8 +241,6 @@ public class ParamReader
     public PARAM ReadParamType(string paramName)
     {
         string paramdefName = paramName.Split("_")[0];
-        foreach (string key in Paramdefs.Keys)
-            Console.WriteLine(key);
             
         PARAMDEF? paramdef = Paramdefs[paramdefName];
         if (paramdef == null)
@@ -93,16 +291,20 @@ public class ParamReader
     public static Dictionary<string, PARAMDEF> GetParamdefs()
     {
         Dictionary<string, PARAMDEF> paramdefs = new();
-        foreach (string xmlFile in Directory.GetFiles("Resources/Defs", "*.xml"))
+        foreach (string xmlStem in ParamdefNames)
         {
-            string fileStem = Path.GetFileNameWithoutExtension(xmlFile);
             try
             {
-                paramdefs[fileStem] = PARAMDEF.XmlDeserialize(xmlFile);
+                // NOTE: This also ensures there are no XML ParamType duplicates.
+                string xml = ResourceManager.GetEmbeddedResource($"Defs.{xmlStem}.xml");
+                paramdefs[xmlStem] = PARAMDEF.XmlDeserializeString(xml);
+                // Logging.DebugPrint($"Loaded PARAMDEF from XML: {xmlStem}");
             }
             catch
             {
                 // Ignore errors in useless defs.
+                Logging.Error($"Fatal error occured when trying to load PARAMDEF from XML: {xmlStem}");
+                throw;
             }
         }
 
@@ -112,7 +314,8 @@ public class ParamReader
     public static void WriteParamWrapper(string paramName)
     {
         string paramdefName = paramName.Split("_")[0];
-        PARAMDEF paramdef = PARAMDEF.XmlDeserialize($"Resources/Defs/{paramdefName}.xml");
+        string paramdefXml = ResourceManager.GetEmbeddedResource($"Defs/{paramdefName}.xml");
+        PARAMDEF paramdef = PARAMDEF.XmlDeserializeString(paramdefXml);
         WriteParamWrapper(paramdef);
     }
     
@@ -122,7 +325,7 @@ public class ParamReader
     /// <param name="paramdef"></param>
     public static void WriteParamWrapper(PARAMDEF paramdef)
     {
-        using StreamWriter file = new($@"C:\Dark Souls\Projects\Elden Ring\EldenRingEldenRingBase\dotnet\EldenRingBase\Params\Wrappers\{paramdef.ParamType}.cs");
+        using StreamWriter file = new($@"Params\Wrappers\{paramdef.ParamType}.cs");
 
         file.WriteLine(
             $$"""

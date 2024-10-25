@@ -50,15 +50,19 @@ public class PlayerManager
         
         Hook.OnGameLoaded += OnLoaded;
         Hook.OnGameUnloaded += OnUnloaded;
+        
+        // Check if game is already loaded.
+        if (Hook.Loaded)
+            OnLoaded(null, null);
     }
 
-    void OnLoaded(object? sender, EventArgs e)
+    void OnLoaded(object? sender, EventArgs? e)
     {
         PlayerIns = new EnemyIns(Hook.WorldChrMan.CreateChildPointer(EldenRingHook.PlayerInsOffset, 0 * 10));
         PlayerAsm = new ChrAsm(Hook.GameDataMan.CreateChildPointer(0x8));
     }
     
-    void OnUnloaded(object? sender, EventArgs e)
+    void OnUnloaded(object? sender, EventArgs? e)
     {
         PlayerIns = null;
         PlayerAsm = null;
@@ -74,17 +78,17 @@ public class PlayerManager
     {
         if (!Hook.Loaded)
         {
-            Logging.WarningPrint("Cannot Get Runes when game is not loaded.");
+            Logging.Warning("Cannot Get Runes when game is not loaded.");
             return false;
         }
         if (!Hook.WorldChrMan.TryResolve(out IntPtr worldChrManAddr))
         {
-            Logging.ErrorPrint("Failed to resolve WorldChrMan.");
+            Logging.Error("Failed to resolve WorldChrMan.");
             return false;
         }
         if (!GetRunesFunc.TryResolve(out IntPtr getRunesFuncAddr))
         {
-            Logging.ErrorPrint("Failed to resolve GetRunes function.");
+            Logging.Error("Failed to resolve GetRunes function.");
             return false;
         }
         
@@ -104,7 +108,7 @@ public class PlayerManager
         }
         catch (Exception e)
         {
-            Logging.ErrorPrint($"Failed to execute Get Runes script: {e}");
+            Logging.Error($"Failed to execute Get Runes script: {e}");
             return false;
         }
         finally

@@ -309,15 +309,40 @@ public class PhysicsDataStruct(PHPointer pointer) : PointerWrapper(pointer)
         public const int RelativePositionY = 0x74;  // float
         public const int RelativePositionZ = 0x78;  // float
     }
-    
-    public float RotationY => Pointer.ReadSingle(Offsets.RotationY);
-    
-    public float RelativePositionX => Pointer.ReadSingle(Offsets.RelativePositionX);
-    public float RelativePositionY => Pointer.ReadSingle(Offsets.RelativePositionY);
-    public float RelativePositionZ => Pointer.ReadSingle(Offsets.RelativePositionZ);
-    
+
+    /// <summary>
+    /// NOTE: 'Local' and 'global' rotation are always the same.
+    /// </summary>
+    public float RotationY
+    {
+        get => Pointer.ReadSingle(Offsets.RotationY);
+        set => Pointer.WriteSingle(Offsets.RotationY, value);
+    }
+
+    public float RelativePositionX
+    {
+        get => Pointer.ReadSingle(Offsets.RelativePositionX);
+        set => Pointer.WriteSingle(Offsets.RelativePositionX, value);
+    }
+
+    public float RelativePositionY
+    {
+        get => Pointer.ReadSingle(Offsets.RelativePositionY);
+        set => Pointer.WriteSingle(Offsets.RelativePositionY, value);
+    }
+
+    public float RelativePositionZ
+    {
+        get => Pointer.ReadSingle(Offsets.RelativePositionZ);
+        set => Pointer.WriteSingle(Offsets.RelativePositionZ, value);
+    }
+
     /// <summary>
     /// Relative to some other position, not sure what. Not super useful.
     /// </summary>
-    public Vector3 RelativePosition => new(RelativePositionX, RelativePositionY, RelativePositionZ);
+    public Vector3 RelativePosition
+    {
+        get => new(RelativePositionX, RelativePositionY, RelativePositionZ);
+        set => (RelativePositionX, RelativePositionY, RelativePositionZ) = (value.X, value.Y, value.Z);
+    }
 }

@@ -9,12 +9,16 @@ namespace EldenRingBase.Memory;
 /// </summary>
 public class EnemyMonitor : GameMonitor
 {
+    // In 1.16, these offsets increased by exactly 0x8. Hoping they don't change again!
+    const int EnemyInsStartOffset = 0x1F1B8;
+    const int EnemyInsEndOffset = 0x1F1C0;
+    
     protected override int UpdateInterval => 500;
 
     EldenRingHook Hook { get; }
 
-    IntPtr CharacterListStartOffset => Hook.WorldChrMan.ReadIntPtr((int)Offsets.WorldChrMan.EnemyInsStartOffset);
-    IntPtr CharacterListEndOffset => Hook.WorldChrMan.ReadIntPtr((int)Offsets.WorldChrMan.EnemyInsEndOffset);
+    IntPtr CharacterListStartOffset => Hook.WorldChrMan.ReadIntPtr(EnemyInsStartOffset);
+    IntPtr CharacterListEndOffset => Hook.WorldChrMan.ReadIntPtr(EnemyInsEndOffset);
     PHPointer? EnemyInsArray { get; set; }
 
     readonly List<EnemyIns> _enemies = [];
@@ -52,11 +56,15 @@ public class EnemyMonitor : GameMonitor
 
         Hook.OnGameLoaded += OnLoaded;
         Hook.OnGameUnloaded += OnUnloaded;
+        
+        // Check if game is already loaded.
+        if (Hook.Loaded)
+            OnLoaded(null, null);
     }
     
     void OnLoaded(object? sender, EventArgs? eventArgs)
     {
-        EnemyInsArray = Hook.CreateChildPointer(Hook.WorldChrMan, (int)Offsets.WorldChrMan.EnemyInsStartOffset);
+        EnemyInsArray = Hook.CreateChildPointer(Hook.WorldChrMan, EnemyInsStartOffset);
     }
     
     void OnUnloaded(object? sender, EventArgs? eventArgs)
@@ -76,6 +84,11 @@ public class EnemyMonitor : GameMonitor
 
     public EnemyIns? FindEnemyEntityID(int entityID)
     {
+        if (entityID <= 0)
+        {
+            Console.WriteLine($"Invalid entity ID: {entityID}. Must be positive (non-zero).");
+            return null;
+        }
         return Enemies.FirstOrDefault(enemy => enemy.EntityID == entityID);
     }
 

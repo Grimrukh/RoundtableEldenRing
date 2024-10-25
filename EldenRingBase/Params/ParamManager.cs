@@ -6,15 +6,14 @@ namespace EldenRingBase.Params;
 
 /// <summary>
 /// Accesses PARAM addresses properly, rather than searching for the whole damn thing.
+///
+/// Does not read/write actual regulation file. Memory manager only.
 /// </summary>
 public class ParamManager : GameMonitor
 {
     EldenRingHook Hook { get; }
     Dictionary<string, PARAMDEF> ParamdefsByType { get; }
     
-    public string RegulationPath { get; }
-    public BND4 Regulation { get; }
-
     public HashSet<ParamType> RequestedParamWrites { get; } = [];
 
     Dictionary<ParamType, ParamInMemory> ParamsInMemory { get; } = new();
@@ -161,24 +160,11 @@ public class ParamManager : GameMonitor
         { ParamType.ActionButtonParam, "ACTIONBUTTON_PARAM_ST" },
     };
     
-    public ParamManager(string gameDirectory, EldenRingHook hook, List<PARAMDEF> paramdefs)
+    public ParamManager(EldenRingHook hook, List<PARAMDEF> paramdefs)
     {
-        RegulationPath = Path.Combine(gameDirectory, "regulation.bin");
-        Regulation = SFUtil.DecryptERRegulation(RegulationPath);
-        
         Hook = hook;
-        Hook.OnHooked += OnHooked;
         Hook.OnUnhooked += OnUnhooked;
         ParamdefsByType = paramdefs.ToDictionary(p => p.ParamType, p => p);
-    }
-
-    void OnHooked(object? sender, PHEventArgs e)
-    {
-        foreach ((ParamType type, int firstParamOffset) in ParamOffsets)
-        {
-            PHPointer paramPointer = Hook.SoloParamRepository.CreateChildPointer(firstParamOffset, 0x80, 0x80);
-            ParamsInMemory[type] = new ParamInMemory(paramPointer, ParamdefsByType[ParamdefNames[type]]);
-        }
     }
     
     void OnUnhooked(object? sender, PHEventArgs e)
@@ -186,12 +172,9 @@ public class ParamManager : GameMonitor
         ParamsInMemory.Clear();
     }
 
-    public bool IsParamLoaded(ParamType paramType)
-    {
-        return ParamsInMemory.ContainsKey(paramType);
-    }
-
     /// <summary>
+    /// Retrieve found `ParamInMemory` or try to load it now (first time).
+    /// 
     /// Caller may want to wrap the output of this in a `Params.Wrappers` class for easier editing.
     /// </summary>
     /// <param name="paramType"></param>
@@ -199,41 +182,32 @@ public class ParamManager : GameMonitor
     /// <exception cref="Exception"></exception>
     public ParamInMemory? GetParam(ParamType paramType)
     {
-        if (ParamsInMemory.Count == 0 || !ParamsInMemory.TryGetValue(paramType, out ParamInMemory? value))
+        if (ParamsInMemory.TryGetValue(paramType, out ParamInMemory? param))
+            return param;  // already loaded (cleared when unhooked)
+
+        if (!ParamdefNames.TryGetValue(paramType, out string? paramdefType))
+        {
+            Logging.Error($"Param type {Enum.GetName(paramType)} not yet supported.");
             return null;
-        return value;
+        }
+        if (!ParamOffsets.TryGetValue(paramType, out int firstParamOffset))
+        {
+            Logging.Error($"Param type {Enum.GetName(paramType)} cannot yet be loaded from memory");
+            return null;
+        }
+        PHPointer paramPointer = Hook.SoloParamRepository.CreateChildPointer(firstParamOffset, 0x80, 0x80);
+        if (!paramPointer.IsNonZero)
+        {
+            Logging.Warning($"Params not yet available in memory. May succeed next call...");
+            return null;
+        }
+
+        ParamsInMemory[paramType] = new ParamInMemory(paramPointer, ParamdefsByType[paramdefType]);
+        Logging.Info($"Loaded PARAM {Enum.GetName(paramType)} in memory ({ParamsInMemory[paramType].Rows.Count} rows).");
+        
+        return ParamsInMemory[paramType];
     }
     
-    // TODO: Doesn't work. May need to serialize new Item Lots and reassign on mod reload.
-    void SaveParamToDisk(ParamType paramType)
-    {
-        ParamInMemory? param = GetParam(paramType);
-        if (param == null)
-        {
-            Logging.ErrorPrint($"Cannot save Param {paramType} to disk because it is not loaded.");
-            return;
-        }
-        
-        BinderFile? paramFile = Regulation.Files.Find(
-            x => x.Name == $@"N:\GR\data\Param\param\GameParam\{paramType.ToString()}.param");
-        if (paramFile == null)
-        {
-            Logging.ErrorPrint($"Cannot save Param {paramType} to disk because it could not be found in Regulation.");
-            return;
-        }
-
-        try
-        {
-            paramFile.Bytes = param.Write();
-        }
-        catch (Exception ex)
-        {
-            Logging.ErrorPrint($"Failed to write Param {paramType}. Error: {ex.Message}");
-        }
-        
-        SFUtil.EncryptERRegulation(RegulationPath, Regulation);
-    }
-
     /// <summary>
     /// Dequeue and execute requested writes of PARAMs.
     ///

@@ -226,6 +226,14 @@ public class ParamInMemory : PointerWrapper
         set => FastSet(id, fieldName, value);
     }
 
+    public void PrintRow(int id)
+    {
+        PARAM.Row row = this[id];
+        Console.WriteLine($"Row {id} ({row.Name}) [{row.ID}]:");
+        foreach (KeyValuePair<string, PARAM.Cell> pair in row.CellDict)
+            Console.WriteLine($"    {pair.Key} = {pair.Value}");
+    }
+
     static (PARAM, int) ReadParam(PHPointer pointer)
     {
         uint stringsOffset = pointer.ReadUInt32(0x0);
@@ -260,6 +268,11 @@ public class ParamInMemory : PointerWrapper
         return idToIndex;
     }
 
+    /// <summary>
+    /// Currently, only supports fields that are not partial bits or dummy8.
+    /// </summary>
+    /// <param name="field"></param>
+    /// <returns></returns>
     static bool SupportsFastOffset(PARAMDEF.Field field)
     {
         if (field.BitSize != -1)
@@ -272,18 +285,19 @@ public class ParamInMemory : PointerWrapper
     {
         Dictionary<string, int> fieldToOffset = new();
         int offset = 0x0;
-        int bitOffset = 0;
-        var bitType = PARAMDEF.DefType.u8;
+        int bitOffset = -1;
+        var bitType = PARAMDEF.DefType.u8;  // choice of init doesn't matter since initial `bitOffset` is -1
 
         foreach (PARAMDEF.Field field in paramdef.Fields)
         {
-            if (SupportsFastOffset(field))
-                fieldToOffset[field.InternalName] = offset;
-            
-            // Increment offset by this field's size.
             int size = getFieldSize(field);
-            offset += size;
             // Console.WriteLine($"{field.InternalName}: {size} ({field.DisplayType}, {field.BitSize}) -> 0x{offset:X}");
+            if (SupportsFastOffset(field))
+            {
+                // Record offset of this field before incrementing it by this field's size.
+                fieldToOffset[field.InternalName] = offset;
+            }
+            offset += size;
         }
 
         return fieldToOffset;
@@ -292,55 +306,34 @@ public class ParamInMemory : PointerWrapper
         {
             PARAMDEF.DefType type = field.DisplayType;
             
-            if (type is PARAMDEF.DefType.u32 or PARAMDEF.DefType.u16 or PARAMDEF.DefType.u8 or PARAMDEF.DefType.dummy8)
+            if (MaxBitCounts.TryGetValue(type, out int maxBitCount) && field.BitSize != -1)
             {
-                if (field.BitSize != -1)
+                // Partial bits only. Skipping a bunch of validation checks here, as failing such checks would
+                // already have prevented the PARAMDEF from being applied to this PARAM.
+
+                PARAMDEF.DefType newBitType = type == PARAMDEF.DefType.dummy8 ? PARAMDEF.DefType.u8 : type;
+                
+                if (bitOffset == -1 || newBitType != bitType || bitOffset + field.BitSize > maxBitCount)
                 {
-                    // Partial bits only. Skipping a bunch of validation checks here, as PARAMDEF wouldn't be able to
-                    // be applied to PARAM in that case.
+                    // Consume new byte(s).
+                    bitType = newBitType;
+                    bitOffset = field.BitSize;
 
-                    PARAMDEF.DefType newBitType = type == PARAMDEF.DefType.dummy8 ? PARAMDEF.DefType.u8 : type;
-                    int bitLimit;
-                    switch (type)
+                    return newBitType switch
                     {
-                        case PARAMDEF.DefType.dummy8:
-                        case PARAMDEF.DefType.u8:
-                            bitLimit = 8;
-                            break;
-                        case PARAMDEF.DefType.u16:
-                            bitLimit = 16;
-                            break;
-                        case PARAMDEF.DefType.u32:
-                            bitLimit = 32;
-                            break;
-                        default:
-                            throw new NotImplementedException($"Unsupported field type: {type}");
-                    }
-                    
-                    if (bitOffset == -1 || newBitType != bitType || bitOffset + field.BitSize > bitLimit)
-                    {
-                        // Time to consume new byte(s).
-                        bitOffset = 0;
-                        bitType = newBitType;
-
-                        switch (bitType)
-                        {
-                            case PARAMDEF.DefType.u8:
-                                return 1;
-                            case PARAMDEF.DefType.u16:
-                                return 2;
-                            case PARAMDEF.DefType.u32:
-                                return 4;
-                        }
-                    }
-
-                    // This field doesn't consume any new bytes.
-                    bitOffset += field.BitSize;
-                    return 0;
+                        PARAMDEF.DefType.u8 => 1,
+                        PARAMDEF.DefType.u16 => 2,
+                        PARAMDEF.DefType.u32 => 4,
+                        _ => throw new ArgumentOutOfRangeException(),  // not reachable
+                    };
                 }
+
+                // This field doesn't consume any new bytes.
+                bitOffset += field.BitSize;
+                return 0;
             }
             
-            // Leftover bits discarded.
+            // Non-bit field. Any leftover bits are discarded.
             bitOffset = -1;
 
             return type switch
@@ -355,4 +348,12 @@ public class ParamInMemory : PointerWrapper
             };
         }
     }
+    
+    static readonly Dictionary<PARAMDEF.DefType, int> MaxBitCounts = new()
+    {
+        {PARAMDEF.DefType.dummy8, 8},
+        {PARAMDEF.DefType.u8, 8},
+        {PARAMDEF.DefType.u16, 16},
+        {PARAMDEF.DefType.u32, 32},
+    };
 }

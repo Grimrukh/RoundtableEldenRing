@@ -15,11 +15,14 @@ public static class ResourceManager
     {
         if (!resourceName.StartsWith("EldenRingBase.Resources."))
             resourceName = "EldenRingBase.Resources." + resourceName;
-        var assembly = Assembly.GetCallingAssembly();
+        var assembly = Assembly.GetExecutingAssembly();
         using Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null)
+        {
             throw new NullReferenceException(
-                $"Could not find embedded resource '{resourceName}' in assembly {Assembly.GetCallingAssembly().GetName()}.");
+                $"Could not find embedded resource '{resourceName}' in assembly: {assembly.GetName()}");            
+        }
+
         using StreamReader reader = new(stream);
         return reader.ReadToEnd();
     }
@@ -34,11 +37,11 @@ public static class ResourceManager
     {
         if (!resourceName.StartsWith("EldenRingBase.Resources."))
             resourceName = "EldenRingBase.Resources." + resourceName;
-        var assembly = Assembly.GetCallingAssembly();
+        var assembly = Assembly.GetExecutingAssembly();
         using Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream == null)
             throw new NullReferenceException(
-                $"Could not find embedded resource '{resourceName}' in assembly {Assembly.GetCallingAssembly().GetName()}.");
+                $"Could not find embedded resource '{resourceName}' in assembly: {assembly.GetName()}");
         MemoryStream ms = new();
         stream.CopyTo(ms);
         ms.Position = 0;

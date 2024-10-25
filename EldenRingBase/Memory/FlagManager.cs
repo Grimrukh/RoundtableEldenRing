@@ -21,7 +21,7 @@ public class FlagManager
     {
         if (!FlagsAvailable)
         {
-            Logging.ErrorPrint("Event Flag pointer is not valid; cannot check event flag.");
+            Logging.Error("Event Flag pointer is not valid; cannot check event flag.");
             return false;
         }
 
@@ -40,7 +40,7 @@ public class FlagManager
         }
         catch (Exception ex)
         {
-            Logging.ErrorPrint($"Failed to read event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
+            Logging.Error($"Failed to read event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
             return false;
         }
     }
@@ -49,7 +49,7 @@ public class FlagManager
     {
         if (!FlagsAvailable)
         {
-            Logging.ErrorPrint("Event Flag pointer is not valid; cannot set event flag.");
+            Logging.Error("Event Flag pointer is not valid; cannot set event flag.");
             return;
         }
 
@@ -72,7 +72,7 @@ public class FlagManager
         }
         catch (Exception ex)
         {
-            Logging.ErrorPrint($"Failed to read and/or set event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
+            Logging.Error($"Failed to read and/or set event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
         }
     }
 
@@ -89,7 +89,7 @@ public class FlagManager
         int mapOffset = flag % 10000;
         if (mapOffset > 3000 || flag < 10000000 || flag >= 1100000000)
         {
-            Logging.ErrorPrint($"Cannot {operation} event flag: {flag}. Only map/overworld flags ending in 0000-2999.");
+            Logging.Error($"Cannot {operation} event flag: {flag}. Only map/overworld flags ending in 0000-2999.");
             return null;
         }
         
@@ -112,7 +112,7 @@ public class FlagManager
         }
         else
         {
-            Logging.ErrorPrint($"Cannot {operation} event flag: {flag}. Must be eight digits (dungeon) or ten digits " +
+            Logging.Error($"Cannot {operation} event flag: {flag}. Must be eight digits (dungeon) or ten digits " +
                                $"starting with 10 (Overworld).");
             return null;
         }
@@ -120,7 +120,7 @@ public class FlagManager
         int baseOffset = mapStem.BaseEventFlagOffset;
         if (baseOffset == -1)
         {
-            Logging.ErrorPrint($"Cannot {operation} event flag: {flag}. Must be 8 (dungeon) or 10 (overworld) digits in " +
+            Logging.Error($"Cannot {operation} event flag: {flag}. Must be 8 (dungeon) or 10 (overworld) digits in " +
                                $"a recognized Elden Ring map. {mapStem} is not recognized.");
             return null;
         }

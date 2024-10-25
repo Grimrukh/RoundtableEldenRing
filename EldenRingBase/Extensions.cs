@@ -71,7 +71,7 @@ public static class Extensions
         if (totalChance <= 0f)
         {
             // Too dangerous to throw here.
-            Logging.WarningPrint("Total chance is zero. Returning random item with uniform distribution.");
+            Logging.Warning("Total chance is zero. Returning random item with uniform distribution.");
             return chances[Rand.Next(0, chances.Count)].item;
         }
         

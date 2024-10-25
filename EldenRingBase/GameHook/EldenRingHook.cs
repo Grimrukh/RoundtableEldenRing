@@ -7,9 +7,10 @@ public class EldenRingHook : PHook
 {
     const string WINDOW_TITLE = "ELDEN RING™";
     
-    public long BaseAddress { get; private set; }
+    public IntPtr MainModuleBaseAddress { get; private set; }
     
     // Hard-coded offset. TODO: Could be game version dependent. Apparently used to be 0x18468.
+    // This is definitely still valid as of 1.16.
     public const int PlayerInsOffset = 0x10EF8;
     
     // High-level pointers.
@@ -28,11 +29,12 @@ public class EldenRingHook : PHook
 
     /// <summary>
     /// Some functions, like reading/writing event flags, require some padding time after the game loads.
+    ///
+    /// TODO: I don't think the above is true anymore. Checking base pointer resolution should be sufficient.
     /// </summary>
     public long LoadedTimeMs { get; private set; } = -1;  // default is unloaded
 
     public bool Loaded => LoadedTimeMs >= 0;  // i.e. not -1
-    
 
     public EldenRingHook(int refreshInterval, int minLifetime) :
         base(refreshInterval, minLifetime, p => p.MainWindowTitle == WINDOW_TITLE)
@@ -54,7 +56,7 @@ public class EldenRingHook : PHook
     void ERHook_OnHooked(object? sender, PHEventArgs e)
     {
         if (Process.MainModule != null) 
-            BaseAddress = Process.MainModule.BaseAddress.ToInt64();
+            MainModuleBaseAddress = Process.MainModule.BaseAddress;
         //Console.WriteLine($"Elden Ring base address: {BaseAddress:X}");
     }
 
@@ -73,12 +75,12 @@ public class EldenRingHook : PHook
             return;
         switch (Loaded)
         {
-            case false when PlayerIns.Resolve() != IntPtr.Zero:
+            case false when PlayerIns.IsNonZero:
                 // Game has just loaded.
                 OnGameLoaded?.Invoke(this, new PHEventArgs(this));
                 LoadedTimeMs = 0;
                 break;
-            case true when PlayerIns.Resolve() == IntPtr.Zero:
+            case true when !PlayerIns.IsNonZero:
                 // Game has just unloaded. Note that this CANNOT trigger before `OnGameLoaded` triggers, as Loaded
                 // will only be set to true when the hook first sees that the game is loaded.
                 OnGameUnloaded?.Invoke(this, new PHEventArgs(this));
@@ -134,7 +136,7 @@ public class EldenRingHook : PHook
             error = Engine.GetLastKeystoneError();
             if (error != KeystoneError.KS_ERR_OK) // would be very unusual
             {
-                Logging.DebugPrint($"Something went wrong during assembly. Code could not be assembled. Error: {error}");
+                Logging.Debug($"Something went wrong during assembly. Code could not be assembled. Error: {error}");
                 return false;
             }
             Kernel32.WriteBytes(Handle, startPtr.Value, bytes.Buffer);
@@ -143,7 +145,7 @@ public class EldenRingHook : PHook
         }
         catch (Exception e)
         {
-            Logging.DebugPrint($"Failed to assemble and execute code: {e.Message}");
+            Logging.Debug($"Failed to assemble and execute code: {e.Message}");
             return false;
         }
         finally

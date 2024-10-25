@@ -147,30 +147,13 @@ public static class Offsets
     }
 
     public const string EventFlagManAoB = "48 8B 3D ? ? ? ? 48 85 FF ? ? 32 C0 E9";
-    public const string IsEventCallAoB = "48 83 EC 28 8B 12 85 D2";
-    public const string SetEventCallAoB = "? ? ? ? ? 48 89 74 24 18 57 48 83 EC 30 48 8B DA 41 0F B6 F8 8B 12 48 8B F1 85 D2 0F 84 ? ? ? ? 45 84 C0";
-
+    
     public const string EventFlagsBase = "44 89 7C 24 28 4C 8B 25";
 
     public const string WorldChrManAoB = "48 8B 05 ? ? ? ? 48 85 C0 74 0F 48 39 88";
 
-    public enum WorldChrMan
-    {
-        /* Old unknown stuff, doesn't seem valid in new patch.
-        NumWorldBlockChr = 0xb528,
-        WorldBlockChr = 0x330,
-        ChrSet1 = 0x17420,
-        ChrSet2 = 0x17438,
-        */
-        EnemyInsStartOffset = 0x1F1B0,
-        EnemyInsEndOffset = 0x1F1B8,
-    }
-
     public enum ActionRequest
     {
-        /// <summary>
-        /// int CurrentAnimation
-        /// </summary>
         CurrentAnimation = 0x90,
     }
 

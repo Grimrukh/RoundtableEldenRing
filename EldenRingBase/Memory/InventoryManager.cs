@@ -100,17 +100,17 @@ public class InventoryManager
     {
         if (!Hook.MapItemMan.TryResolve(out IntPtr mapItemManAddr))
         {
-            Logging.DebugPrint("Failed to resolve MapItemMan.");
+            Logging.Debug("Failed to resolve MapItemMan.");
             return;
         }
         if (!AwardItemFunc.TryResolve(out IntPtr awardItemFuncAddr))
         {
-            Logging.DebugPrint("Failed to resolve AwardItem function.");
+            Logging.Debug("Failed to resolve AwardItem function.");
             return;
         }
         
         IntPtr itemSpawnInfoAddr = Hook.AllocateClose(4 * sizeof(int));
-        Logging.DebugPrint($"itemSpawnInfoAddr = {mapItemManAddr:X}");
+        Logging.Debug($"itemSpawnInfoAddr = {mapItemManAddr:X}");
 
         try
         {
@@ -128,9 +128,9 @@ public class InventoryManager
                 (itemSpawnInfoAddr + 0xC).ToString("X2"),  // 3
                 mapItemManAddr.ToString("X2"),  // 4
                 awardItemFuncAddr.ToString("X2"));  // 5
-            Logging.DebugPrint(asm);
+            Logging.Debug(asm);
             Hook.AssembleAndExecute(asm);
-            Logging.DebugPrint($"Awarded item: {category} {id} x{quantity}");
+            Logging.Debug($"Awarded item: {category} {id} x{quantity}");
         }
         finally
         {
@@ -167,9 +167,9 @@ public class InventoryManager
             inventoryAccessorAddr + 8);  // return address (original AOB location)
         
         // Allocate injection code.
-        Logging.DebugPrint(inventoryHookAsm);
+        Logging.Debug(inventoryHookAsm);
         InventoryHookAddr = Hook.AssembleAllocateWrite(inventoryHookAsm, executable: true);
-        Logging.DebugPrint($"Inventory hook address: {InventoryHookAddr.Value.ToInt64():X}");
+        Logging.Debug($"Inventory hook address: {InventoryHookAddr.Value.ToInt64():X}");
         
         MemBuilder injectionSiteMem = new();
         int relativeJump = (int)(InventoryHookAddr.Value - (inventoryAccessorAddr + 0x5));  // jumps AFTER jump instruction in game function (5 bytes)
@@ -179,7 +179,7 @@ public class InventoryManager
         
         // Inject jump instruction.
         byte[] injectionSiteBytes = injectionSiteMem.Finish();
-        Logging.DebugPrint($"Final injection SITE code: {BitConverter.ToString(injectionSiteBytes)}");
+        Logging.Debug($"Final injection SITE code: {BitConverter.ToString(injectionSiteBytes)}");
         if (!Kernel32.WriteBytes(Hook.Handle, inventoryAccessorAddr, injectionSiteBytes))
         {
             Console.WriteLine($"ERROR: Failed to inject Inventory Manager jump. Error: {Marshal.GetLastWin32Error()}");
@@ -187,7 +187,7 @@ public class InventoryManager
             InventoryHookAddr = null;
             return;
         }
-        Logging.DebugPrint("Injected inventory hook successfully.");
+        Logging.Debug("Injected inventory hook successfully.");
     }
     
     public void DisableInventoryHook()
@@ -212,6 +212,6 @@ public class InventoryManager
             InventoryInfoAddr = null;
         }
         
-        Logging.DebugPrint("Inventory hook disabled.");
+        Logging.Debug("Inventory hook disabled.");
     }
 }
