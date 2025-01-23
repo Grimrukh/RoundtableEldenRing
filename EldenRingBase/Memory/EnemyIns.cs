@@ -32,7 +32,7 @@ public class EnemyIns : PointerWrapper
         public const int PlayerLocalPositionX = 0x6C0;  // float
         public const int PlayerLocalPositionY = 0x6C4;  // float
         public const int PlayerLocalPositionZ = 0x6C8;  // float
-        public const int RotationY = 0x6CC;  // float; lobal and global are the same
+        public const int RotationY = 0x6CC;  // float; local and global are the same
     }
 
     public EnemyInsModuleBaseStruct ModuleBase { get; }

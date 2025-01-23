@@ -75,6 +75,90 @@ public class FlagManager
             Logging.Error($"Failed to read and/or set event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
         }
     }
+    
+    /// <summary>
+    /// Read a 32-bit unsigned integer starting at the flag address.
+    ///
+    /// Bits are read directly; no endianess conversion is performed. The first flag is the most significant bit.
+    /// </summary>
+    /// <param name="flag"></param>
+    /// <returns></returns>
+    public uint? ReadUInt32AtFlag(uint flag)
+    {
+        if (!FlagsAvailable)
+        {
+            Logging.Error("Event Flag pointer is not valid; cannot read uint32 from event flags.");
+            return null;
+        }
+        
+        uint mapOffset = flag % 10000;
+        if (mapOffset > 3000 - 32)
+        {
+            Logging.Error(
+                $"Cannot read uint32 from event flag: {flag}. uint32 bounds must be within map flags [0000, 2999].");
+            return null;
+        }
+
+        IntPtr flagBlocksOffset = EventFlagMan.ReadIntPtr(0x28);
+        (int address, byte _)? addressMask = GetFlagAddressMask((int)flag, "check");
+        if (addressMask == null)
+            return null;
+        
+        // We don't need the bit mask.
+        (int address, byte _) = addressMask.Value;
+        IntPtr flagAddress = flagBlocksOffset + address;
+        
+        try
+        {
+            return Kernel32.ReadUInt32(Hook.Process.Handle, flagAddress);
+        }
+        catch (Exception ex)
+        {
+            Logging.Error($"Failed to read uint32 starting at event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Write a 32-bit unsigned integer starting at the flag address.
+    /// </summary>
+    /// <param name="flag"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public void WriteUInt32AtFlag(uint flag, uint value)
+    {
+        if (!FlagsAvailable)
+        {
+            Logging.Error("Event Flag pointer is not valid; cannot write uint32 to event flags.");
+            return;
+        }
+        
+        uint mapOffset = flag % 10000;
+        if (mapOffset > 3000 - 32)
+        {
+            Logging.Error(
+                $"Cannot write uint32 to event flag: {flag}. uint32 bounds must be within map flags [0000, 2999].");
+            return;
+        }
+
+        IntPtr flagBlocksOffset = EventFlagMan.ReadIntPtr(0x28);
+        (int address, byte _)? addressMask = GetFlagAddressMask((int)flag, "check");
+        if (addressMask == null)
+            return;
+        
+        // We don't need the bit mask.
+        (int address, byte _) = addressMask.Value;
+        IntPtr flagAddress = flagBlocksOffset + address;
+        
+        try
+        {
+            Kernel32.WriteUInt32(Hook.Process.Handle, flagAddress, value);
+        }
+        catch (Exception ex)
+        {
+            Logging.Error($"Failed to write uint32 starting at event flag {flag} at {flagAddress:X}. Error: {ex.Message}");
+        }
+    }
 
     static (int address, byte mask)? GetFlagAddressMask(int flag, string operation)
     {
