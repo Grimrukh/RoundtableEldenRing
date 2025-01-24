@@ -40,10 +40,33 @@ public enum MapAreaType : byte
 /// </summary>
 public class MapStem
 {
+    // Lists of 'major' legacy dungeons in base game and DLC, for use with `IsMajorLegacyDungeon(Any|Base|DLC)` props.
+    // Excludes underground rivers, special generic dungeons like Stranded Graveyard, and arenas like Stone Platform.
+    static HashSet<string> MajorLegacyDungeonsBase = [
+        "m10_00_00_00",  // Stormveil Castle
+        "m11_00_00_00",  // Leyndell, Royal Capital
+        "m11_05_00_00",  // Leyndell, Ashen Capital
+        "m12_05_00_00",  // Mohgwyn Palace
+        "m13_00_00_00",  // Crumbling Farum Azula
+        "m14_00_00_00",  // Academy of Raya Lucaria
+        "m15_00_00_00",  // Miquella's Haligtree
+        "m16_00_00_00",  // Volcano Manor
+    ];
+    static HashSet<string> MajorLegacyDungeonsDLC = [
+        "m20_00_00_00",  // Belurat, Tower Settement
+        "m20_01_00_00",  // Enir-Ilim
+        "m21_00_00_00",  // Shadow Keep
+        "m21_00_00_00",  // Specimen Storehouse
+        "m22_00_00_00",  // Stone Coffin Fissure
+        "m28_00_00_00",  // Midra's Manse
+    ];
+    
     // Actual members:
     readonly string _stem;
     public readonly byte[] Bytes;
     public readonly MapAreaType AreaType;
+    
+    // All other fields are computed properties.
 
     public byte AA => Bytes[0];
     public byte Area => Bytes[0];
@@ -84,13 +107,17 @@ public class MapStem
     }
     
     public bool IsDLC => 
-        AreaType is MapAreaType.OverworldDLC 
-            or MapAreaType.LegacyDungeonDLC
-            or >= MapAreaType.CatacombsDLC and <= MapAreaType.CaveDLC;
+        AreaType is MapAreaType.OverworldDLC
+        || AA is >= 20 and <= 29  // legacy dungeons 
+        || AA is >= 40 and <= 49;  // generic dungeons 
 
     public bool IsOverworldBase => AreaType == MapAreaType.Overworld;
     public bool IsOverworldDLC => AreaType == MapAreaType.OverworldDLC;
     public bool IsOverworldAny => AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC;
+
+    public bool IsMajorLegacyDungeonBase => MajorLegacyDungeonsBase.Contains(_stem);
+    public bool IsMajorLegacyDungeonDLC => MajorLegacyDungeonsDLC.Contains(_stem);
+    public bool IsMajorLegacyDungeonAny => IsMajorLegacyDungeonBase || IsMajorLegacyDungeonDLC;
 
     public bool IsGenericDungeonBase => 
         AreaType is MapAreaType.Catacombs or MapAreaType.Cave or MapAreaType.Tunnel
@@ -176,14 +203,24 @@ public class MapStem
         {
             >= 10 and <= 19 => MapAreaType.LegacyDungeonBase,
             >= 20 and <= 29 => MapAreaType.LegacyDungeonDLC,
+            
             (byte)MapAreaType.Catacombs => MapAreaType.Catacombs,
             (byte)MapAreaType.Cave => MapAreaType.Cave,
             (byte)MapAreaType.Tunnel => MapAreaType.Tunnel,
             (byte)MapAreaType.DivineTower => MapAreaType.DivineTower,
             (byte)MapAreaType.ShunningGrounds => MapAreaType.ShunningGrounds,
             (byte)MapAreaType.RuinStrewnPrecipice => MapAreaType.RuinStrewnPrecipice,
+            
+            (byte)MapAreaType.CatacombsDLC => MapAreaType.CatacombsDLC,
+            (byte)MapAreaType.GaolDLC => MapAreaType.GaolDLC,
+            (byte)MapAreaType.RuinedForgeDLC => MapAreaType.RuinedForgeDLC,
+            (byte)MapAreaType.CaveDLC => MapAreaType.CaveDLC,
+            
             (byte)MapAreaType.Colosseum => MapAreaType.Colosseum,
+            
             (byte)MapAreaType.Overworld => MapAreaType.Overworld,
+            (byte)MapAreaType.OverworldDLC => MapAreaType.OverworldDLC,
+            
             _ => MapAreaType.Unknown, // 255 (-1)
         };
     }
