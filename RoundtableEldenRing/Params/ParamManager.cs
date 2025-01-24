@@ -1,6 +1,6 @@
 ﻿using PropertyHook;
 using SoulsFormats;
-using RoundtableEldenRing.GameHook;
+using RoundtableEldenRing.Memory;
 using RoundtableBase;
 
 namespace RoundtableEldenRing.Params;
@@ -161,7 +161,7 @@ public class ParamManager : GameMonitor
         { ParamType.ActionButtonParam, "ACTIONBUTTON_PARAM_ST" },
     };
     
-    public ParamManager(EldenRingHook hook, List<PARAMDEF> paramdefs)
+    public ParamManager(EldenRingHook hook, IEnumerable<PARAMDEF> paramdefs)
     {
         Hook = hook;
         Hook.OnUnhooked += OnUnhooked;

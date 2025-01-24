@@ -1,5 +1,4 @@
 ﻿using PropertyHook;
-using RoundtableEldenRing.GameHook;
 
 namespace RoundtableEldenRing.Memory;
 
@@ -9,7 +8,7 @@ namespace RoundtableEldenRing.Memory;
 /// </summary>
 public class EnemyMonitor : GameMonitor
 {
-    // In 1.16, these offsets increased by exactly 0x8. Hoping they don't change again!
+    // In Elden Ring v1.16, these offsets increased by exactly 0x8. Hoping they don't change again!
     const int EnemyInsStartOffset = 0x1F1B8;
     const int EnemyInsEndOffset = 0x1F1C0;
     
@@ -162,19 +161,19 @@ public class EnemyMonitor : GameMonitor
                     {
                         // Enemy has been alive for ONE SECOND continuously. Mark it as alive.
                         LivingEnemies[enemy.Name] = (enemy.ModelName, enemy.EntityID);
-                        // Logging.DebugPrint($"Enemy {i} '{enemy.Name}' officially ALIVE (map {enemy.MapStem}). Last HP = {enemy.CurrentHP}");
+                        // Logging.Debug($"Enemy {i} '{enemy.Name}' officially ALIVE (map {enemy.MapStem}). Last HP = {enemy.CurrentHP}");
                     }
                 }
                 else
                 {
                     // Enemy is dead.
-                    // Logging.DebugPrint($"Enemy '{enemy.Name}' seen with zero HP.");
+                    // Logging.Debug($"Enemy '{enemy.Name}' seen with zero HP.");
                     EnemyAliveSinceTime.Remove(enemy.Name);
                     if (!LivingEnemies.ContainsKey(enemy.Name))
                         continue;
 
                     // Official enemy death event: enemy was alive for >= 1 second, then died.
-                    // Logging.DebugPrint($"--> Enemy {i} '{enemy.Name}' has DIED (map {enemy.MapStem}). HP = {enemy.CurrentHP}");
+                    // Logging.Debug($"--> Enemy {i} '{enemy.Name}' has DIED (map {enemy.MapStem}). HP = {enemy.CurrentHP}");
                     OnEnemyDeath?.Invoke((enemy.Name, enemy.ModelName, enemy.EntityID, enemy.MapStem));
                     LivingEnemies.Remove(enemy.Name);
                 }
@@ -189,7 +188,7 @@ public class EnemyMonitor : GameMonitor
             return true;
         }
 
-        // Logging.DebugPrint($"Enemy count: {Enemies.Count}");
+        // Logging.Debug($"Enemy count: {Enemies.Count}");
 
         return true;
     }

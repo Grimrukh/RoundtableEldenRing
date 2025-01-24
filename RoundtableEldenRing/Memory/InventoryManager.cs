@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using PropertyHook;
 using RoundtableBase;
-using RoundtableEldenRing.GameHook;
 using RoundtableEldenRing.Text;
 
 namespace RoundtableEldenRing.Memory;

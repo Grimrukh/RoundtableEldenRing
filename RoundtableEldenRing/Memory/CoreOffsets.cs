@@ -1,7 +1,6 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
-namespace RoundtableEldenRing.GameHook;
+namespace RoundtableEldenRing.Memory;
 
 [SuppressMessage("ReSharper", "UnusedMember.Global")]
 public static class CoreOffsets
@@ -147,7 +146,11 @@ public static class CoreOffsets
     }
 
     public const string EventFlagManAoB = "48 8B 3D ? ? ? ? 48 85 FF ? ? 32 C0 E9";
-    
+    // NOTE: These engine function pointers are not safe for rapid usage.
+    // `FlagManager` now finds and modifies the flag memory directly.
+    // public const string IsEventCallAoB = "48 83 EC 28 8B 12 85 D2";
+    // public const string SetEventCallAoB = "? ? ? ? ? 48 89 74 24 18 57 48 83 EC 30 48 8B DA 41 0F B6 F8 8B 12 48 8B F1 85 D2 0F 84 ? ? ? ? 45 84 C0";
+
     public const string EventFlagsBase = "44 89 7C 24 28 4C 8B 25";
 
     public const string WorldChrManAoB = "48 8B 05 ? ? ? ? 48 85 C0 74 0F 48 39 88";

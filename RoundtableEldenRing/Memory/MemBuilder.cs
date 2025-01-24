@@ -1,4 +1,4 @@
-﻿namespace RoundtableEldenRing.GameHook;
+﻿namespace RoundtableEldenRing.Memory;
 
 /// <summary>
 /// My utility class for constructing a byte array for direct

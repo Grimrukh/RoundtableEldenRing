@@ -1,7 +1,7 @@
 ﻿using PropertyHook;
 using RoundtableBase.Memory;
 
-namespace RoundtableEldenRing.GameHook;
+namespace RoundtableEldenRing.Memory;
 
 public class EldenRingHook : BaseGameHook
 {

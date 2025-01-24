@@ -1,6 +1,5 @@
 ﻿using PropertyHook;
 using RoundtableBase;
-using RoundtableEldenRing.GameHook;
 
 namespace RoundtableEldenRing.Memory;
 

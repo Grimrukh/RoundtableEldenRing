@@ -4,14 +4,17 @@ using RoundtableBase;
 namespace RoundtableEldenRing.Params;
 
 /// <summary>
-/// Utility class for quickly loading and reading PARAMs, mostly for mod creation purposes.
+/// Utility class for quickly loading, reading, and writing PARAMs from a 'regaulation.bin' file.
 ///
 /// Can be constructed from a game directory path (from which `regulation.bin` is read) or from an existing `BND4`
 /// regulation (e.g. `ParamManager.Regulation`) to use.
+///
+/// When a `PARAM` is loaded and retrieved, its container `BinderFile` is also returned so you can write the `PARAM`
+/// back to that same `BinderFile` when ready. Then the `GameParam` stored in this class will contain the changes.
 /// </summary>
-public class ParamReader
+public class GameParamWrapper
 {
-    BND4 GameParam { get; }
+    public BND4 GameParam { get; }
     Dictionary<string, PARAMDEF> Paramdefs { get; }  // loaded ONCE on creation; keys are XML file stems
 
     /// <summary>
@@ -215,31 +218,39 @@ public class ParamReader
         "WwiseValueToStrConvertParamFormat",
     ];
 
-    public ParamReader(string regulationPath)
+    public GameParamWrapper(string regulationPath)
     {
         GameParam = SFUtil.DecryptERRegulation(regulationPath);
         Paramdefs = GetParamdefs();
     }
     
-    public ParamReader(BND4 gameParam)
+    public GameParamWrapper(BND4 gameParam)
     {
         GameParam = gameParam;
         Paramdefs = GetParamdefs();
     }
 
     /// <summary>
-    /// Read and return given `paramType`, with its `PARAMDEF` applied.
+    /// Read and return both the `BinderFile` and `PARAM` for the given `paramType`, with its `PARAMDEF` applied.
+    ///
+    /// Just calls the string overload with the enum name.
     /// </summary>
     /// <param name="paramType"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public PARAM ReadParamType(ParamType paramType)
+    public (BinderFile paramFile, PARAM param) ReadParamType(ParamType paramType)
     {
         string paramName = paramType.ToString();
         return ReadParamType(paramName);
     }
 
-    public PARAM ReadParamType(string paramName)
+    /// <summary>
+    /// Read and return both the `BinderFile` and `PARAM` for the given `paramName`, with its `PARAMDEF` applied.
+    /// </summary>
+    /// <param name="paramName"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public (BinderFile paramFile, PARAM param) ReadParamType(string paramName)
     {
         string paramdefName = paramName.Split("_")[0];
             
@@ -250,13 +261,18 @@ public class ParamReader
         (string dlcPath, string basePath) = GetParamBNDPaths(paramName);
         BinderFile? paramFile = GameParam.Files.Find(x => x.Name == dlcPath || x.Name == basePath);
         if (paramFile == null)
-            throw new Exception($"File '{paramName}.param' not found in regulation.");
+        {
+            // Print all GameParam file names for debugging.
+            foreach (BinderFile file in GameParam.Files)
+                Logging.Debug($"GameParam file: {file.Name}");
+            throw new Exception($"File '{paramName}.param' not found in regulation. See debug log output for full list.");
+        }
         
         PARAM param = PARAM.Read(paramFile.Bytes);
         bool success = param.ApplyParamdefCarefully(paramdef);
         if (!success)
             throw new Exception($"Failed to apply PARAMDEF to {paramName} due to PARAM mismatch.");
-        return param;
+        return (paramFile, param);
     }
     
     public Dictionary<ParamType, (BinderFile paramFile, PARAM param)> ReadParamTypes(params ParamType[] paramTypes)
@@ -271,10 +287,15 @@ public class ParamReader
             if (paramdef == null)
                 throw new Exception($"No PARAMDEF '{paramdefName}' found for PARAM '{paramName}'.");
         
-            BinderFile? paramFile = GameParam.Files.Find(
-                x => x.Name == $@"N:\GR\data\Param\param\GameParam\{paramName}.param");
+            (string dlcPath, string basePath) = GetParamBNDPaths(paramName);
+            BinderFile? paramFile = GameParam.Files.Find(x => x.Name == dlcPath || x.Name == basePath);
             if (paramFile == null)
-                throw new Exception($"File '{paramName}' not found in regulation.");
+            {
+                // Print all GameParam file names for debugging.
+                foreach (BinderFile file in GameParam.Files)
+                    Logging.Debug($"GameParam file: {file.Name}");
+                throw new Exception($"File '{paramName}' not found in regulation. See debug log output for full list.");
+            }
             PARAM param = PARAM.Read(paramFile.Bytes);
             bool success = param.ApplyParamdefCarefully(paramdef);
             if (!success)
@@ -299,7 +320,7 @@ public class ParamReader
                 // NOTE: This also ensures there are no XML ParamType duplicates.
                 string xml = ResourceManager.GetEmbeddedResource($"Defs.{xmlStem}.xml");
                 paramdefs[xmlStem] = PARAMDEF.XmlDeserializeString(xml);
-                // Logging.DebugPrint($"IsGameLoaded PARAMDEF from XML: {xmlStem}");
+                // Logging.Debug($"IsGameLoaded PARAMDEF from XML: {xmlStem}");
             }
             catch
             {
