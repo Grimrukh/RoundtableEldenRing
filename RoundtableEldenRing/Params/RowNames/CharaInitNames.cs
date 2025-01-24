@@ -1,0 +1,217 @@
+﻿using System.Reflection;
+
+namespace RoundtableEldenRing.Params.RowNames;
+
+public static class CharaInitNames
+{
+    public const int Human = 20000;
+    public const int Tanith = 23000;
+    public const int WhiteMaskVarre = 23010;
+    public const int RoundtableKnightVyke = 23040;
+    public const int FesteringFingerprintVyke = 23041;
+    public const int PreceptorSeluvis = 23070;
+    public const int Patches_0 = 23090;
+    public const int Patches_1 = 23091;
+    public const int Patches_2 = 23092;
+    public const int IrinaOfMorne_0 = 23100;
+    public const int Hyetta = 23101;
+    public const int IrinaOfMorne_1 = 23102;
+    public const int Edgar = 23110;
+    public const int WitchHunterJerren_0 = 23120;
+    public const int CastellanJerren_0 = 23121;
+    public const int WitchHunterJerren_1 = 23122;
+    public const int RyaTheScout = 23130;
+    public const int KnightDiallos = 23140;
+    public const int Human_1 = 23150;
+    public const int SorceressSellen_0 = 23160;
+    public const int SorceressSellen_1 = 23161;
+    public const int SorceressSellen_2 = 23162;
+    public const int SorceressSellen_3 = 23163;
+    public const int YuraHunterOfBloodyFingers_0 = 23180;
+    public const int YuraHunterOfBloodyFingers_1 = 23181;
+    public const int Shabriri = 23182;
+    public const int YuraHunterOfBloodyFingers_2 = 23183;
+    public const int YuraHunterOfBloodyFingers_3 = 23184;
+    public const int DHunterOfTheDead_0 = 23190;
+    public const int DHunterOfTheDead_1 = 23191;
+    public const int DHunterOfTheDead_2 = 23192;
+    public const int DHunterOfTheDead_3 = 23193;
+    public const int DHunterOfTheDead_4 = 23194;
+    public const int DHunterOfTheDead_5 = 23195;
+    public const int Roderika = 23200;
+    public const int RoderikaSpiritTuner = 23201;
+    public const int KennethHaight = 23210;
+    public const int FiaDeathbedCompanion_0 = 23221;
+    public const int FiaDeathbedCompanion_1 = 23222;
+    public const int DungEater_0 = 23230;
+    public const int DungEater_1 = 23231;
+    public const int DungEaterPuppet = 23232;
+    public const int SirGideonOfnir_0 = 23240;
+    public const int SirGideonOfnir_1 = 23241;
+    public const int SirGideonOfnir_2 = 23242;
+    public const int SirGideonOfnir_3 = 23243;
+    public const int SirGideonOfnir_4 = 23244;
+    public const int SirGideonOfnir_5 = 23245;
+    public const int SirGideonOfnir_6 = 23246;
+    public const int SirGideonOfnir_7 = 23247;
+    public const int SirGideonOfnir_8 = 23248;
+    public const int SirGideonOfnir_9 = 23249;
+    public const int SorcererRogier_0 = 23250;
+    public const int SorcererRogier_1 = 23251;
+    public const int SorcererRogier_2 = 23252;
+    public const int KnightBernahl = 23260;
+    public const int RecusantBernahl_0 = 23261;
+    public const int RecusantBernahl_1 = 23262;
+    public const int EleonoraVioletBloodyFinger_0 = 23270;
+    public const int EleonoraVioletBloodyFinger_1 = 23271;
+    public const int LionelTheLionhearted = 23290;
+    public const int Human_2 = 23291;
+    public const int Blackguard_0 = 23310;
+    public const int Blackguard_1 = 23311;
+    public const int Blackguard_2 = 23312;
+    public const int RykardHatingGhost = 23320;
+    public const int SorcererThops_0 = 23330;
+    public const int SorcererThops_1 = 23331;
+    public const int NepheliLoux_0 = 23340;
+    public const int NepheliLoux_1 = 23341;
+    public const int NepheliLouxPuppet = 23342;
+    public const int VykesFingerMaiden = 23360;
+    public const int FingerMaiden = 23380;
+    public const int EnshaOfTheRoyalRemains = 23390;
+    public const int BloodyFingerRavenmountAssassin = 23400;
+    public const int BocTheSeamster = 23420;
+    public const int SanguineNobleHuman = 23430;
+    public const int GreatHornedTragoth_0 = 23440;
+    public const int GreatHornedTragoth_1 = 23441;
+    public const int OldKnightIstvan = 23450;
+    public const int RileighTheIdle = 23460;
+    public const int JunoHoslow = 23470;
+    public const int Millicent_0 = 23480;
+    public const int Millicent_1 = 23481;
+    public const int Millicent_2 = 23482;
+    public const int Millicent_3 = 23483;
+    public const int Millicent_4 = 23484;
+    public const int Millicent_5 = 23485;
+    public const int Millicent_6 = 23486;
+    public const int Millicent_7 = 23487;
+    public const int Millicent_8 = 23488;
+    public const int SageGowry = 23490;
+    public const int BrotherCorhyn = 23510;
+    public const int PreceptorMiriam_0 = 23520;
+    public const int PreceptorMiriam_1 = 23521;
+    public const int AnastasiaTarnishedEater_0 = 23530;
+    public const int AnastasiaTarnishedEater_1 = 23531;
+    public const int AnastasiaTarnishedEater_2 = 23532;
+    public const int BloodyFingerOkina = 23550;
+    public const int Okina = 23551;
+    public const int AdanThiefOfFire = 23560;
+    public const int MoongrumCarianKnight = 23590;
+    public const int VargramTheRagingWolf = 23600;
+    public const int FiasChampion1_0 = 23610;
+    public const int FiasChampion1_1 = 23611;
+    public const int FiasChampion1_2 = 23612;
+    public const int FiasChampion1_3 = 23613;
+    public const int FiasChampion1_4 = 23614;
+    public const int FiasChampion1_5 = 23615;
+    public const int FiasChampion1_6 = 23616;
+    public const int FiasChampion1_7 = 23617;
+    public const int FiasChampion1_8 = 23618;
+    public const int FingerMaidenTherolina_0 = 23630;
+    public const int FingerMaidenTherolinaPuppet = 23631;
+    public const int FingerMaidenTherolina_1 = 23632;
+    public const int DoloresTheSleepingArrow = 23640;
+    public const int JarwightPuppet = 23650;
+    public const int InabaDiscipleOfOkina = 23670;
+    public const int SilverTearHuman_0 = 23680;
+    public const int SilverTearHuman_1 = 23681;
+    public const int SilverTearHuman_2 = 23682;
+    public const int SilverTearHuman_3 = 23683;
+    public const int RecusantHenricus = 23690;
+    public const int FiasChampion2_0 = 23700;
+    public const int FiasChampion2_1 = 23701;
+    public const int FiasChampion2_2 = 23702;
+    public const int FiasChampion2_3 = 23703;
+    public const int FiasChampion2_4 = 23704;
+    public const int FiasChampion2_5 = 23705;
+    public const int FiasChampion2_6 = 23706;
+    public const int FiasChampion2_7 = 23707;
+    public const int FiasChampion2_8 = 23708;
+    public const int FiasChampion2_9 = 23710;
+    public const int FiasChampion3_0 = 23711;
+    public const int FiasChampion3_1 = 23712;
+    public const int FiasChampion3_2 = 23713;
+    public const int FiasChampion3_3 = 23714;
+    public const int FiasChampion3_4 = 23715;
+    public const int FiasChampion3_5 = 23716;
+    public const int FiasChampion3_6 = 23717;
+    public const int FiasChampion3_7 = 23718;
+    public const int MaleighMarais = 23720;
+    public const int KnightOfTheGreatJar1_0 = 23730;
+    public const int KnightOfTheGreatJar1_1 = 23731;
+    public const int KnightOfTheGreatJar1_2 = 23732;
+    public const int KnightOfTheGreatJar1_3 = 23733;
+    public const int KnightOfTheGreatJar1_4 = 23734;
+    public const int KnightOfTheGreatJar1_5 = 23735;
+    public const int KnightOfTheGreatJar1_6 = 23736;
+    public const int KnightOfTheGreatJar1_7 = 23737;
+    public const int KnightOfTheGreatJar1_8 = 23738;
+    public const int KnightOfTheGreatJar2_0 = 23740;
+    public const int KnightOfTheGreatJar2_1 = 23741;
+    public const int KnightOfTheGreatJar2_2 = 23742;
+    public const int KnightOfTheGreatJar2_3 = 23743;
+    public const int KnightOfTheGreatJar2_4 = 23744;
+    public const int KnightOfTheGreatJar2_5 = 23745;
+    public const int KnightOfTheGreatJar2_6 = 23746;
+    public const int KnightOfTheGreatJar2_7 = 23747;
+    public const int KnightOfTheGreatJar2_8 = 23748;
+    public const int KnightOfTheGreatJar3_0 = 23750;
+    public const int KnightOfTheGreatJar3_1 = 23751;
+    public const int KnightOfTheGreatJar3_2 = 23752;
+    public const int KnightOfTheGreatJar3_3 = 23753;
+    public const int KnightOfTheGreatJar3_4 = 23754;
+    public const int KnightOfTheGreatJar3_5 = 23755;
+    public const int KnightOfTheGreatJar3_6 = 23756;
+    public const int KnightOfTheGreatJar3_7 = 23757;
+    public const int KnightOfTheGreatJar3_8 = 23758;
+    public const int NecromancerGarris = 23760;
+    public const int NamelessWhiteMask = 23770;
+    public const int ErrantSorcererWilhelm = 23800;
+    public const int ChiefGuardianArghanthy = 23820;
+    public const int FlameGuardian = 23830;
+    public const int InquisitorGhiza = 23840;
+    public const int MadTongueAlberich = 23850;
+    public const int EsgarPriestOfBlood = 23860;
+    public const int MaryEldestSister = 23870;
+    public const int MaureenSecondSister = 23880;
+    public const int AmyThirdSister = 23890;
+    public const int PolyannaYoungestSister_0 = 23900;
+    public const int PolyannaYoungestSister_1 = 23901;
+    public const int StrayMimicTear = 24010;
+    public const int MimicTear_0 = 24020;
+    public const int MimicTear_1 = 26050;
+    public const int StormhillColosseumSilentSpirit = 27000;
+    public const int CariaManorSilentSpirit = 27001;
+    public const int DragonbarrowSilentSpirit = 27002;
+    public const int Human_3 = 27900;
+    public const int Human_4 = 28500;
+    
+    /// <summary>
+    /// Get a dictionary that maps CharaInitParam IDs like 24010 to their character names here, via reflection.
+    /// </summary>
+    /// <returns></returns>
+    public static Dictionary<int, string> BuildInverseDictionary()
+    {
+        Dictionary<int, string> charaNames = new();
+        foreach (FieldInfo field in typeof(CharaInitNames).GetFields(BindingFlags.Public | BindingFlags.Static))
+        {
+            if (field.FieldType != typeof(int))
+                continue;
+            
+            int? charaID = (int?)field.GetValue(null);
+            if (charaID != null)
+                charaNames[charaID.Value] = field.Name;
+        }
+
+        return charaNames;
+    }
+}

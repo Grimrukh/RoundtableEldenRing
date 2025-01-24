@@ -4,3 +4,6 @@
 [submodule "Dependencies/SoulsFormats"]
 	path = Dependencies/SoulsFormats
 	url = git@github.com:Grimrukh/SoulsFormats.git
+[submodule "Dependencies/RoundtableBase"]
+	path = Dependencies/RoundtableBase
+	url = ssh://git@github.com/Grimrukh/RoundtableBase.git
