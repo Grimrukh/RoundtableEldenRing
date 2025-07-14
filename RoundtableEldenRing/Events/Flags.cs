@@ -1,4 +1,6 @@
-﻿namespace RoundtableEldenRing.Events;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace RoundtableEldenRing.Events;
 
 /// <summary>
 /// Vanilla game flags checked/changed by the mod.
@@ -13,6 +15,7 @@
 /// will only match for enemies loaded in a large tile. Standard format:
 ///     12XXZZ0800
 /// </summary>
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public static class VanillaFlags
 {
     #region Important Boss Flags
@@ -280,4 +283,50 @@ public static class VanillaFlags
     public const int FreezingFieldsBossDead = 1054560800;  // Borealis the Freezing Fog
     public const int SourthwestMountaintopsBossDead = 1248550800;  // Night's Cavalry Duo
     #endregion
+}
+
+
+/// <summary>
+/// Complete documentation of all the instructions that take at least one event flag (or flag range) parameter, and the
+/// offset of those argument(s).
+/// </summary>
+public static class InstructionFlagOffsets
+{
+    public static readonly Dictionary<(int bank, int id), int[]> FLAGS = new()
+    {
+        [(3, 0)] = [4],  // IfFlagState
+        [(3, 12)] = [4],  // IfEventValueComparison
+        [(1003, 0)] = [4],  // AwaitFlagState
+        [(1003, 1)] = [4],  // SkipLinesIfFlagState
+        [(1003, 2)] = [4],  // ReturnIfFlagState
+        [(2003, 9)] = [0],  // InvertFlag
+        [(2004, 76)] = [0],  // Unknown_2004_76
+        [(2003, 25)] = [12, 16],  // PlaceSummonSign
+        [(2003, 31)] = [0],  // IncrementEventValue
+        [(2003, 32)] = [0],  // ClearEventValue
+        [(2003, 41)] = [0, 12],  // EventValueOperation
+        [(2005, 9)] = [0],  // CreateHazard
+        [(2005, 12)] = [0],  // RemoveAssetFlag
+        [(2009, 0)] = [0, 4],  // RegisterLadder
+        [(2009, 3)] = [0],  // RegisterGrace
+        [(1003, 101)] = [4],  // GotoIfFlagState
+        [(2003, 42)] = [8],  // StoreItemAmountSpecifiedByFlagValue
+        [(2003, 43)] = [8],  // GivePlayerItemAmountSpecifiedByFlagValue
+        [(2003, 66)] = [4],  // SetFlagState
+        [(2005, 20)] = [0],  // CreateBigHazardousAsset
+        [(2007, 10)] = [16, 20, 24],  // AwaitDialogResponse
+    };
+    
+    public static readonly Dictionary<(int bank, int id), (int first, int last)> FLAG_RANGES = new()
+    {
+        [(3, 1)] = (4, 8),  // IfFlagRangeState
+        [(3, 10)] = (4, 8),  // IfEnabledFlagCountComparison
+        [(1003, 3)] = (4, 8),  // SkipLinesIfFlagRangeState
+        [(1003, 4)] = (4, 8),  // ReturnIfFlagRangeState
+        [(2003, 17)] = (0, 4),  // SetRandomFlagInRange
+        [(2003, 22)] = (0, 4),  // SetFlagRangeState
+        [(1003, 103)] = (4, 8),  // GotoIfFlagRangeState
+        [(2003, 63)] = (0, 4),  // SetNetworkConnectedFlagRangeState
+    };
+
 }
