@@ -20,7 +20,7 @@ public class GameParamWrapper
     /// <summary>
     /// Stems of all XML PARAMDEF resources.
     /// </summary>
-    static readonly List<string> ParamdefNames =
+    static readonly List<string> PARAMDEF_NAMES =
     [
         "ActionButtonParam",
         "AiAnimTblParam",
@@ -313,7 +313,7 @@ public class GameParamWrapper
     public static Dictionary<string, PARAMDEF> GetParamdefs()
     {
         Dictionary<string, PARAMDEF> paramdefs = new();
-        foreach (string xmlStem in ParamdefNames)
+        foreach (string xmlStem in PARAMDEF_NAMES)
         {
             try
             {
