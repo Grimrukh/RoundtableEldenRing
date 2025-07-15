@@ -42,7 +42,7 @@ public class MapStem
 {
     // Lists of 'major' legacy dungeons in base game and DLC, for use with `IsMajorLegacyDungeon(Any|Base|DLC)` props.
     // Excludes underground rivers, special generic dungeons like Stranded Graveyard, and arenas like Stone Platform.
-    static HashSet<string> MajorLegacyDungeonsBase = [
+    static readonly HashSet<string> MAJOR_LEGACY_DUNGEONS_BASE = [
         "m10_00_00_00",  // Stormveil Castle
         "m11_00_00_00",  // Leyndell, Royal Capital
         "m11_05_00_00",  // Leyndell, Ashen Capital
@@ -52,17 +52,17 @@ public class MapStem
         "m15_00_00_00",  // Miquella's Haligtree
         "m16_00_00_00",  // Volcano Manor
     ];
-    static HashSet<string> MajorLegacyDungeonsDLC = [
+    static readonly HashSet<string> MAJOR_LEGACY_DUNGEONS_DLC = [
         "m20_00_00_00",  // Belurat, Tower Settement
         "m20_01_00_00",  // Enir-Ilim
         "m21_00_00_00",  // Shadow Keep
-        "m21_00_00_00",  // Specimen Storehouse
+        "m21_01_00_00",  // Specimen Storehouse
         "m22_00_00_00",  // Stone Coffin Fissure
         "m28_00_00_00",  // Midra's Manse
     ];
     
     // Actual members:
-    readonly string _stem;
+    readonly string stem;
     public readonly byte[] Bytes;
     public readonly MapAreaType AreaType;
     
@@ -79,7 +79,7 @@ public class MapStem
         {
             if (AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC)
                 return Bytes[1];
-            throw new Exception($"Map {_stem} is not an overworld map tile.");
+            throw new Exception($"Map {stem} is not an overworld map tile.");
         }
     }
     
@@ -90,7 +90,7 @@ public class MapStem
         {
             if (AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC)
                 return Bytes[2];
-            throw new Exception($"Map {_stem} is not an overworld map tile.");
+            throw new Exception($"Map {stem} is not an overworld map tile.");
         }
     }
     
@@ -102,7 +102,7 @@ public class MapStem
         {
             if (AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC)
                 return (TileSize)(Bytes[3] % 10);
-            throw new Exception($"Map {_stem} is not an overworld map tile.");
+            throw new Exception($"Map {stem} is not an overworld map tile.");
         }
     }
     
@@ -115,20 +115,20 @@ public class MapStem
     public bool IsOverworldDLC => AreaType == MapAreaType.OverworldDLC;
     public bool IsOverworldAny => AreaType is MapAreaType.Overworld or MapAreaType.OverworldDLC;
 
-    public bool IsMajorLegacyDungeonBase => MajorLegacyDungeonsBase.Contains(_stem);
-    public bool IsMajorLegacyDungeonDLC => MajorLegacyDungeonsDLC.Contains(_stem);
+    public bool IsMajorLegacyDungeonBase => MAJOR_LEGACY_DUNGEONS_BASE.Contains(stem);
+    public bool IsMajorLegacyDungeonDLC => MAJOR_LEGACY_DUNGEONS_DLC.Contains(stem);
     public bool IsMajorLegacyDungeonAny => IsMajorLegacyDungeonBase || IsMajorLegacyDungeonDLC;
 
     public bool IsGenericDungeonBase => 
         AreaType is MapAreaType.Catacombs or MapAreaType.Cave or MapAreaType.Tunnel
-        or MapAreaType.DivineTower || _stem == "m18_00_00_00";  // includes Fringefolk Hero's Grave (Stranded Graveyard)
+        or MapAreaType.DivineTower || stem == "m18_00_00_00";  // includes Fringefolk Hero's Grave (Stranded Graveyard)
     public bool IsGenericDungeonDLC => AreaType is >= MapAreaType.CatacombsDLC and <= MapAreaType.CaveDLC;
     public bool IsGenericDungeonAny => IsGenericDungeonBase || IsGenericDungeonDLC;
 
     /// <summary>
     /// Hero's Graves are different from other Catacombs (e.g., no lever). Note that the DLC has none.
     /// </summary>
-    public bool IsHerosGrave => HerosGraveCatacombs.Contains(_stem);
+    public bool IsHerosGrave => HEROS_GRAVE_CATACOMBS.Contains(stem);
 
     /// <summary>
     /// Underground River areas all have AA == 12. (None in the DLC.)
@@ -138,12 +138,12 @@ public class MapStem
     /// <summary>
     /// Auto-detected path to map directory relative to 'Game' root directory.
     /// </summary>
-    public string MapDirPath => $"map/{_stem[1..3]}/{_stem}";
+    public string MapDirPath => $"map/{stem[1..3]}/{stem}";
     
     /// <summary>
     /// Auto-detected path to MSB file relative to 'Game' root directory.
     /// </summary>
-    public string MSBPath => $"map/mapstudio/{_stem}.msb.dcx";
+    public string MSBPath => $"map/mapstudio/{stem}.msb.dcx";
     
     /// <summary>
     /// Check if this map should have an EMEVD file.
@@ -151,7 +151,7 @@ public class MapStem
     /// NOTE: EMEVD is NOT compulsory for any overworld map. Most small tiles have EMEVD, and some large tiles do
     /// (e.g. caravans). I don't think any vanilla medium tiles have EMEVD.
     /// </summary>
-    public bool ShouldHaveEMEVD => !IsOverworldAny && !MapsWithoutEMEVD.Contains(_stem);
+    public bool ShouldHaveEMEVD => !IsOverworldAny && !MAPS_WITHOUT_EMEVD.Contains(stem);
     
     /// <summary>
     /// Offset of first event flag in this map, e.g. 1000_0000 or 60_4030_0000, from `[[EventFlagMan]+0x28]`.
@@ -159,10 +159,10 @@ public class MapStem
     public int BaseEventFlagOffset => AreaType switch
     {
         MapAreaType.Overworld => GetOverworldMapBaseFlag(TileX, TileZ),
-        _ => GetDungeonMapBaseFlag(_stem),
+        _ => GetDungeonMapBaseFlag(stem),
     };
 
-    static readonly HashSet<string> HerosGraveCatacombs =
+    static readonly HashSet<string> HEROS_GRAVE_CATACOMBS =
     [
         "m30_08_00_00",
         "m30_09_00_00",
@@ -174,7 +174,7 @@ public class MapStem
     /// <summary>
     /// Non-overworld maps that do not have or need EMEVD.
     /// </summary>
-    static readonly HashSet<string> MapsWithoutEMEVD =
+    static readonly HashSet<string> MAPS_WITHOUT_EMEVD =
     [
         "m11_70_00_00",
         "m11_72_00_00",
@@ -183,7 +183,7 @@ public class MapStem
 
     public MapStem(string mapStem)
     {
-        _stem = mapStem;
+        stem = mapStem;
         try
         {
             Bytes =
@@ -262,14 +262,14 @@ public class MapStem
         return new MapStem(Path.GetFileName(path).Split('.')[0]);
     }
 
-    public bool IsMap(string mapStem) => _stem == mapStem;
+    public bool IsMap(string mapStem) => stem == mapStem;
 
     public bool IsMap(byte[] mapBytes) => Bytes.SequenceEqual(mapBytes);
     
     public Vector3 GetTileWorldTranslation(byte originTileX = 46, byte originTileZ = 49)
     {
         if (AreaType != MapAreaType.Overworld)
-            throw new Exception($"Map {_stem} is not an overworld map tile.");
+            throw new Exception($"Map {stem} is not an overworld map tile.");
 
         switch (TileSize)
         {
@@ -334,70 +334,70 @@ public class MapStem
             return -1;
         if (tileZ is < 30 or > 63)
             return -1;
-        return OverworldTile3230Offset + (tileX - 32) * 40 * OverworldBlockSize + (tileZ - 30) * OverworldBlockSize;
+        return OVERWORLD_TILE3230_OFFSET + (tileX - 32) * 40 * OVERWORLD_BLOCK_SIZE + (tileZ - 30) * OVERWORLD_BLOCK_SIZE;
     }
     
     static int GetDungeonMapBaseFlag(string stem)
     {
         if (stem == "m35_00_00_00")
-            return SubterraneanShunningGroundsOffset;
+            return SUBTERRANEAN_SHUNNING_GROUNDS_OFFSET;
         if (stem == "m39_20_00_00")
-            return RuinStrewnPrecipiceOffset;
+            return RUIN_STREWN_PRECIPICE_OFFSET;
         
         if (stem.StartsWith("m1"))
         {
-            int legacyBlockIndex = LegacyDungeonBlockIndices.GetValueOrDefault(stem, -1);
+            int legacyBlockIndex = LEGACY_DUNGEON_BLOCK_INDICES.GetValueOrDefault(stem, -1);
             if (legacyBlockIndex >= 0)
-                return LegacyDungeonBaseOffset + legacyBlockIndex * DungeonBlockSize;
+                return LEGACY_DUNGEON_BASE_OFFSET + legacyBlockIndex * DUNGEON_BLOCK_SIZE;
             return -1;
         }
 
         if (stem.StartsWith("m30"))
         {
-            int catacombsIndex = CatacombsBlockIndices.IndexOf(stem);
+            int catacombsIndex = CATACOMBS_BLOCK_INDICES.IndexOf(stem);
             if (catacombsIndex >= 0)
-                return CatacombsBaseOffset + catacombsIndex * DungeonBlockSize;
+                return CATACOMBS_BASE_OFFSET + catacombsIndex * DUNGEON_BLOCK_SIZE;
             return -1;
         }
         
         if (stem.StartsWith("m31"))
         {
-            int caveIndex = CaveBlockIndices.IndexOf(stem);
+            int caveIndex = CAVE_BLOCK_INDICES.IndexOf(stem);
             if (caveIndex >= 0)
-                return CaveBaseOffset + caveIndex * DungeonBlockSize;
+                return CAVE_BASE_OFFSET + caveIndex * DUNGEON_BLOCK_SIZE;
             return -1;
         }
         
         if (stem.StartsWith("m32"))
         {
-            int tunnelIndex = TunnelBlockIndices.IndexOf(stem);
+            int tunnelIndex = TUNNEL_BLOCK_INDICES.IndexOf(stem);
             if (tunnelIndex >= 0)
-                return TunnelBaseOffset + tunnelIndex * DungeonBlockSize;
+                return TUNNEL_BASE_OFFSET + tunnelIndex * DUNGEON_BLOCK_SIZE;
             return -1;
         }
         
         if (stem.StartsWith("m34"))
         {
-            int divineTowerIndex = DivineTowerBlockIndices.IndexOf(stem);
+            int divineTowerIndex = DIVINE_TOWER_BLOCK_INDICES.IndexOf(stem);
             if (divineTowerIndex >= 0)
-                return DivineTowerBaseOffset + divineTowerIndex * DungeonBlockSize;
+                return DIVINE_TOWER_BASE_OFFSET + divineTowerIndex * DUNGEON_BLOCK_SIZE;
             return -1;
         }
 
         return -1;
     }
 
-    const int DungeonBlockSize = 0x465;
-    const int OverworldBlockSize = 0x36B;
+    const int DUNGEON_BLOCK_SIZE = 0x465;
+    const int OVERWORLD_BLOCK_SIZE = 0x36B;
     
-    const int OverworldTile3230Offset = 0x49B33;
+    const int OVERWORLD_TILE3230_OFFSET = 0x49B33;
 
-    const int LegacyDungeonBaseOffset = 0x151BCF;
+    const int LEGACY_DUNGEON_BASE_OFFSET = 0x151BCF;
     /// <summary>
     /// Index of a Legacy Dungeon's event flag block in the event flag array.
     /// </summary>
     /// <returns></returns>
-    static readonly Dictionary<string, int> LegacyDungeonBlockIndices = new()
+    static readonly Dictionary<string, int> LEGACY_DUNGEON_BLOCK_INDICES = new()
     {
         ["m10_00_00_00"] = 0,
         ["m10_01_00_00"] = 1,
@@ -421,11 +421,11 @@ public class MapStem
         ["m19_00_00_00"] = 38,
     };
 
-    const int SubterraneanShunningGroundsOffset = 0x15CFFC;
-    const int RuinStrewnPrecipiceOffset = 0x15DD2B;
+    const int SUBTERRANEAN_SHUNNING_GROUNDS_OFFSET = 0x15CFFC;
+    const int RUIN_STREWN_PRECIPICE_OFFSET = 0x15DD2B;
 
-    const int DivineTowerBaseOffset = 0x16237B;
-    static readonly List<string> DivineTowerBlockIndices =
+    const int DIVINE_TOWER_BASE_OFFSET = 0x16237B;
+    static readonly List<string> DIVINE_TOWER_BLOCK_INDICES =
     [
         "m34_10_00_00",
         "m34_11_00_00",
@@ -436,8 +436,8 @@ public class MapStem
     ];
     
     // NOTE: Catacombs has no missing block IDs from 0-20 and no unused memory blocks.
-    const int CatacombsBaseOffset = 0x167B5F;
-    static readonly List<string> CatacombsBlockIndices =
+    const int CATACOMBS_BASE_OFFSET = 0x167B5F;
+    static readonly List<string> CATACOMBS_BLOCK_INDICES =
     [
         "m30_00_00_00",
         "m30_01_00_00",
@@ -463,8 +463,8 @@ public class MapStem
     ];
 
     // NOTE: Cave blocks only omit SOME of the unused block IDs.
-    const int CaveBaseOffset = 0x16FF35;
-    static readonly List<string> CaveBlockIndices =
+    const int CAVE_BASE_OFFSET = 0x16FF35;
+    static readonly List<string> CAVE_BLOCK_INDICES =
     [
         "m31_00_00_00",
         "m31_01_00_00",
@@ -491,8 +491,8 @@ public class MapStem
     ];
 
     // Tunnels omit all unused block IDs.
-    const int TunnelBaseOffset = 0x17830B;
-    static readonly List<string> TunnelBlockIndices = 
+    const int TUNNEL_BASE_OFFSET = 0x17830B;
+    static readonly List<string> TUNNEL_BLOCK_INDICES = 
     [
         "m32_00_00_00",
         "m32_01_00_00",
@@ -507,15 +507,15 @@ public class MapStem
     
     #region String Conversion
     // Implicit casts to and from `string`.
-    public static implicit operator string(MapStem stem) => stem._stem;
+    public static implicit operator string(MapStem stem) => stem.stem;
     public static implicit operator MapStem(string stem) => new(stem);
 
     // Explicit string conversion.
-    public override string ToString() => _stem;
+    public override string ToString() => stem;
 
-    // Equality just checks `_stem`.
-    public override bool Equals(object? obj) => obj is MapStem stem && stem._stem == _stem;
-    public override int GetHashCode() => _stem.GetHashCode();
+    // Equality just checks `stem`.
+    public override bool Equals(object? obj) => obj is MapStem s && s.stem == stem;
+    public override int GetHashCode() => stem.GetHashCode();
     
     public static bool operator ==(MapStem? left, MapStem? right)
     {
@@ -550,6 +550,6 @@ public class MapStem
     /// Direct string indexing into the map stem.
     /// </summary>
     /// <param name="range"></param>
-    public string this[Range range] => _stem[range];
+    public string this[Range range] => stem[range];
     #endregion
 }
