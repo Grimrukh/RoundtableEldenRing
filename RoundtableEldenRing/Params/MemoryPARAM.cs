@@ -106,6 +106,47 @@ public class MemoryPARAM : RTPointer
     }
 
     /// <summary>
+    /// Write many rows (already edited in this copy, e.g. through `this[id][field].Value`) to memory in as few calls
+    /// as possible: the row offset table is read once, and rows whose data lie back to back in memory are written in
+    /// one block. Each `FastSet` or `FastSetRow` re-resolves the pointer chain several times, which is very slow for
+    /// hundreds of rows when other threads are also reading game memory. Returns the number of memory writes.
+    /// </summary>
+    public int FastSetRows(IEnumerable<int> rowIDs)
+    {
+        List<(long dataOffset, byte[] bytes)> rows = [];
+        int rowCount = _param.Rows.Count;
+        byte[] table = Pointer.ReadBytes(0x40, (uint)(0x18 * rowCount));
+        foreach (int rowID in rowIDs.Distinct())
+        {
+            int rowIndex = IDToIndex[rowID];
+            long dataOffset = BitConverter.ToInt64(table, 0x18 * rowIndex + 0x8);
+            rows.Add((dataOffset, this[rowID].WriteCells()));
+        }
+        rows.Sort((a, b) => a.dataOffset.CompareTo(b.dataOffset));
+
+        int writes = 0;
+        int i = 0;
+        while (i < rows.Count)
+        {
+            // Extend the run while the next row starts exactly where this one ends.
+            int j = i;
+            long end = rows[i].dataOffset + rows[i].bytes.Length;
+            while (j + 1 < rows.Count && rows[j + 1].dataOffset == end)
+            {
+                j++;
+                end += rows[j].bytes.Length;
+            }
+            byte[] block = new byte[end - rows[i].dataOffset];
+            for (int k = i; k <= j; k++)
+                Buffer.BlockCopy(rows[k].bytes, 0, block, (int)(rows[k].dataOffset - rows[i].dataOffset), rows[k].bytes.Length);
+            WriteBytes((int)rows[i].dataOffset, block);
+            writes++;
+            i = j + 1;
+        }
+        return writes;
+    }
+
+    /// <summary>
     /// Set a field value in the PARAM by row ID and field name.
     ///
     /// Updates `PARAM` and also edits memory immediately rather than calling the expensive

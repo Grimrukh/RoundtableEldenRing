@@ -214,6 +214,116 @@ public class FlagManager
         return (address, mask);
     }
 
+    /// <summary>
+    /// Set many event flags at once, in as few memory calls as possible: the flag block pointer is resolved once, the
+    /// flag bytes are read in a few spans (flags at most `MaxSpanGap` bytes apart share one read), and only the bytes
+    /// that actually change are written back. `SetEventFlag` costs ~7 memory calls per flag, which took most of a
+    /// minute for ~1,000 flags while other threads were also reading game memory. Returns the number of flags whose
+    /// state changed.
+    /// </summary>
+    public int SetEventFlags(IEnumerable<uint> flags, bool state)
+    {
+        if (!FlagsAvailable)
+        {
+            Logging.Error("Event Flag pointer is not valid; cannot set event flags.");
+            return 0;
+        }
+        IntPtr flagBlocksOffset = EventFlagMan.ReadIntPtr(0x28);
+        IntPtr handle = Hook.Process.Handle;
+
+        SortedDictionary<int, byte> masksByAddress = new();
+        foreach (uint flag in flags)
+        {
+            (int address, byte mask)? addressMask = GetFlagAddressMask((int)flag, "set");
+            if (addressMask == null)
+                continue;
+            (int address, byte mask) = addressMask.Value;
+            masksByAddress[address] = (byte)(masksByAddress.GetValueOrDefault(address) | mask);
+        }
+
+        return SetFlagBits(handle, flagBlocksOffset, masksByAddress, state);
+    }
+
+    /// <summary>
+    /// Set (or clear) the `mask` bits of each byte at `flagBlocksOffset + address` in `handle`'s process, reading and
+    /// writing in spans as described in `SetEventFlags`. Public for testing. Returns the number of bits changed.
+    /// </summary>
+    public static int SetFlagBits(
+        IntPtr handle, IntPtr flagBlocksOffset, IReadOnlyDictionary<int, byte> masksByAddress, bool state)
+    {
+        int changed = 0;
+        List<(int address, byte mask)> span = [];
+        foreach ((int address, byte mask) in masksByAddress.OrderBy(kv => kv.Key))
+        {
+            if (span.Count > 0 && address - span[^1].address > MaxSpanGap)
+            {
+                changed += SetFlagSpan(handle, flagBlocksOffset, span, state);
+                span.Clear();
+            }
+            span.Add((address, mask));
+        }
+        if (span.Count > 0)
+            changed += SetFlagSpan(handle, flagBlocksOffset, span, state);
+        return changed;
+    }
+
+    /// <summary>Flags whose bytes are at most this far apart are read in one call (one memory page).</summary>
+    const int MaxSpanGap = 0x1000;
+
+    /// <summary>
+    /// Read the bytes from the first to the last address of `span` in one call, then write only the changed bytes
+    /// (consecutive ones together). Falls back to one byte at a time if the span can't be read.
+    /// </summary>
+    static int SetFlagSpan(IntPtr handle, IntPtr flagBlocksOffset, List<(int address, byte mask)> span, bool state)
+    {
+        int start = span[0].address;
+        int length = span[^1].address - start + 1;
+        byte[] bytes = new byte[length];
+        if (!Kernel32.ReadProcessMemory(handle, flagBlocksOffset + start, bytes, (IntPtr)length, out IntPtr read)
+            || read != (IntPtr)length)
+        {
+            Logging.Warning($"Could not read event flag bytes {start:X}+{length:X}; setting them one at a time.");
+            int count = 0;
+            foreach ((int address, byte mask) in span)
+            {
+                byte flagByte = Kernel32.ReadByte(handle, flagBlocksOffset + address);
+                byte newByte = state ? (byte)(flagByte | mask) : (byte)(flagByte & ~mask);
+                if (newByte == flagByte)
+                    continue;
+                Kernel32.WriteByte(handle, flagBlocksOffset + address, newByte);
+                count += BitCount((byte)(newByte ^ flagByte));
+            }
+            return count;
+        }
+
+        // New values of the bytes that change, in address order.
+        List<(int address, byte value)> changes = [];
+        int changedFlags = 0;
+        foreach ((int address, byte mask) in span)
+        {
+            byte flagByte = bytes[address - start];
+            byte newByte = state ? (byte)(flagByte | mask) : (byte)(flagByte & ~mask);
+            if (newByte == flagByte)
+                continue;
+            changes.Add((address, newByte));
+            changedFlags += BitCount((byte)(newByte ^ flagByte));
+        }
+
+        int i = 0;
+        while (i < changes.Count)
+        {
+            int j = i;
+            while (j + 1 < changes.Count && changes[j + 1].address == changes[j].address + 1)
+                j++;
+            byte[] run = changes.GetRange(i, j - i + 1).Select(c => c.value).ToArray();
+            Kernel32.WriteBytes(handle, flagBlocksOffset + changes[i].address, run);
+            i = j + 1;
+        }
+        return changedFlags;
+    }
+
+    static int BitCount(byte b) => System.Numerics.BitOperations.PopCount(b);
+
     public void Enable(uint flag) => SetEventFlag(flag, true);
     public void Disable(uint flag) => SetEventFlag(flag, false);
 }
